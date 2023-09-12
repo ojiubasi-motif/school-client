@@ -5,7 +5,10 @@ import "./index.css";
 // =====================
 // Import our custom CSS
 import './index.css'
+import '@popperjs/core';
+import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
 import './scss/styles.scss'
 // Import all of Bootstrap's JS
 // =======================

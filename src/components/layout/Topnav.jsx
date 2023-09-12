@@ -1,11 +1,11 @@
-import { AlignRight, ChevronDown, RefreshCw, Search } from "react-feather";
+// import { AlignRight, ChevronDown, RefreshCw, Search } from "react-feather";
 import { Link, NavLink } from "react-router-dom";
 import Logo from "../../../public/img/logo.png";
 import User from "../../../public/img/user.png"
 
 const Topnav = () => {
   return (
-    <div className="display-flex px-2 py-1 rounded border">
+    <div className="display-flex px-2 py-1 ">
       {/* ========logo======= */}
       <div
         className="logo d-flex justify-content-between align-items-center p-2"
@@ -28,19 +28,19 @@ const Topnav = () => {
       </div>
 
       {/* ========nav list========= */}
-      <ul className="m-0 p-0 nav-list display-flex border" style={{minWidth:"40%"}}>
+      <ul className="m-0 p-0 nav-list display-flex " style={{minWidth:"40%"}}>
         <li>
-          <NavLink to="/schools" className="topnav-link">
+          <NavLink to="/" className="topnav-link">
             Schools
           </NavLink>
         </li>
         <li>
-          <NavLink to="/students" className="topnav-link">
+          <NavLink to="/" className="topnav-link">
             Students
           </NavLink>
         </li>
         <li>
-          <NavLink to="/trainers" className="topnav-link">
+          <NavLink to="/" className="topnav-link">
             Trainers
           </NavLink>
         </li>
@@ -56,7 +56,7 @@ const Topnav = () => {
               </div> */}
               {/* <ChevronRight size={"14px"}/> */}
           </div>
-          <ul className="dropdown-menu ms-2">
+          <ul className="dropdown-menu ms-2" aria-labelledby="navbarDropdownMenuLink">
             <li><a className="dropdown-item" href="#">Action</a></li>
             <li><a className="dropdown-item" href="#">Another action</a></li>
             <li><a className="dropdown-item" href="#">Something else here</a></li>
