@@ -72,7 +72,7 @@ const StudentDetails = () => {
       ? filteredFields?.session
       : currentSession?.session_id,
     term: filteredFields?.term ? filteredFields?.term : 1,
-    subject: filteredFields?.subject ? filteredFields?.subject : null,
+    subject: filteredFields?.subject && filteredFields?.subject !== "all"? filteredFields?.subject : null,
   });
 
   // useEffect(()=>{
@@ -223,7 +223,7 @@ const StudentDetails = () => {
                     onChange={handleChange}
                     aria-label="Floating label select example"
                   >
-                    <option selected={null} value={null}>
+                    <option selected="all" value="all">
                       All Subjects
                     </option>
                     {allSubjects?.data?.map((option, index) => (

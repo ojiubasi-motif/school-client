@@ -99,7 +99,7 @@ const fetchStudentAcademicRecords = async ({ queryKey }) => {
     },
     params: query,
   });
-  console.log("fetched again & the filtered res from db query=>", filteredRes);
+  // console.log("filter query=>", query);
   return {
     data:
       filteredRes?.data?.data?.code === 600
