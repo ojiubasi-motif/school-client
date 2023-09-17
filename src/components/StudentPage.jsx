@@ -223,7 +223,7 @@ const StudentDetails = () => {
                     onChange={handleChange}
                     aria-label="Floating label select example"
                   >
-                    <option selected="" value={null}>
+                    <option selected={null} value={null}>
                       All Subjects
                     </option>
                     {allSubjects?.data?.map((option, index) => (
