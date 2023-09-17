@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useQueryClient } from "react-query";
 import {
   useAllSessionsData,
+  useAllSubjectsData,
   useClassInview,
   useSchoolInview,
   // useCurrentSessionData,
@@ -12,15 +13,18 @@ import {
 } from "../queryHooks/Queries";
 import { session, subjects } from "./constants/dummy";
 import AcademicRecord from "./AcademicRecord";
+import { Plus } from "react-feather";
+import CreateScore from "./modals/CreateScore";
 
 const StudentDetails = () => {
   const location = useLocation();
   const [filteredFields, setFilter] = useState({
     session: null,
-    term: "first",
+    term: null,
     subject: null,
   });
   const [currentSession, setCurrentSession] = useState(null);
+  const [modal, setModal] = useState({ show: false, data: null });
 
   const {
     data: allSessions,
@@ -64,18 +68,39 @@ const StudentDetails = () => {
     isError: isErrorFetchingAcademicData,
   } = useStudentAcademicData({
     student_id: location?.state?.student,
-    session: filteredFields?.session?filteredFields?.session:currentSession?.session_id,
-    term: filteredFields?.term?filteredFields?.term:"first",
-    subject: filteredFields?.subject?filteredFields?.subject:null,
+    session: filteredFields?.session
+      ? filteredFields?.session
+      : currentSession?.session_id,
+    term: filteredFields?.term ? filteredFields?.term : 1,
+    subject: filteredFields?.subject ? filteredFields?.subject : null,
   });
 
+  // useEffect(()=>{
+
+  // },[academicData])
+
   const {
-    data:school,isLoading:loadingSchoolData,isError:errorLoadingSchData
-  } = useSchoolInview(data?.data?.msg?.school_id)
+    data: school,
+    isLoading: loadingSchoolData,
+    isError: errorLoadingSchData,
+  } = useSchoolInview(data?.data?.msg?.school_id);
 
-  const {data:studentClass, isLoading:loadingClass, isError:errorLoadingClass} = useClassInview({classId:data?.data?.msg?.grade, schoolId:data?.data?.msg?.school_id})
+  const {
+    data: allSubjects,
+    isLoading: loadingSubjects,
+    isError: errorLoadingSubjects,
+  } = useAllSubjectsData();
 
-  // console.log("all academic records for this student==>", academicData?.data?.data)
+  const {
+    data: studentClass,
+    isLoading: loadingClass,
+    isError: errorLoadingClass,
+  } = useClassInview({
+    classId: data?.data?.msg?.grade,
+    schoolId: data?.data?.msg?.school_id,
+  });
+
+  // console.log("from the query==>", academicData);
   return (
     <div className="mt-1 p-3 pb-0">
       {isError ? (
@@ -104,7 +129,9 @@ const StudentDetails = () => {
               </span>
               <span className="d-flex fs-4 fw-bold">
                 Class:
-                <p className="text-secondary ms-1 d-inline-block text-truncate">{studentClass?.data?.name}</p>
+                <p className="text-secondary ms-1 d-inline-block text-truncate">
+                  {studentClass?.data?.name}
+                </p>
               </span>
               <span className="d-flex fs-4 fw-bold">
                 Arm:
@@ -166,11 +193,19 @@ const StudentDetails = () => {
                     {/* <option selected="first" value="all">
                       first
                     </option> */}
-                    {["first", "second", "third"]?.map((option, index) => (
+                    {["First", "Second", "Third"]?.map((option, index) => (
                       <option
-                        selected={option === "first" ? "first" : null}
+                        // selected={option === "First" ? 1 : null}
                         key={index}
-                        value={option}
+                        value={
+                          option === "First"
+                            ? 1
+                            : option === "Second"
+                            ? 2
+                            : option === "Third"
+                            ? 3
+                            : null
+                        }
                       >
                         {option}
                       </option>
@@ -188,22 +223,36 @@ const StudentDetails = () => {
                     onChange={handleChange}
                     aria-label="Floating label select example"
                   >
-                    {subjects?.map((option, index) => (
-                      <option
-                        key={index}
-                        value={
-                          option?.value == "All Subjects"
-                            ? undefined
-                            : option?.value
-                        }
-                      >
-                        {option?.value}
+                    <option selected="">
+                      All Subjects
+                    </option>
+                    {allSubjects?.data?.map((option, index) => (
+                      <option key={index} value={option?.subject_id}>
+                        {option?.name}
                       </option>
                     ))}
                   </select>
                   <label htmlFor="class">Subject</label>
                 </div>
               </div>
+              <button
+                className="btn btn-primary btn-sm text-nowrap"
+                onClick={(e) => {
+                  e?.preventDefault();
+                  setModal({
+                    show: true,
+                    data: {
+                      student: location?.state?.student
+                        ? location?.state?.student
+                        : data?.data?.msg,
+                      session: currentSession,
+                    },
+                  });
+                }}
+              >
+                Add Score
+                <Plus size={"16px"} className="" />
+              </button>
               {/* =====filter group ends===== */}
             </div>
           </span>
@@ -253,24 +302,29 @@ const StudentDetails = () => {
                     <h4 colSpan="4">error fetching data...</h4>
                   </td>
                 </tr>
-              ) : academicData?.data?.data?.code == 600 &&
-                academicData?.data?.data?.msg?.length > 0 ? (
-                academicData?.data?.data?.msg?.map((termdata, index) => (
+              ) : 
+                academicData?.data?.length > 0 ? (
+                academicData?.data?.map((termdata, index) => (
                   <AcademicRecord
                     key={index}
                     data={termdata}
-                    term={filteredFields?.term}
+                    term={filteredFields?.term ? filteredFields?.term : 1}
                   />
                 ))
               ) : (
                 <td>
-                  <h4 colSpan="4">No record found fo this search</h4>
+                  <h4 colSpan="4">No record found for this search</h4>
                 </td>
               )}
             </tbody>
           </table>
         </>
       ) : null}
+      <CreateScore
+        show={modal?.show}
+        onHide={() => setModal(false)}
+        data={modal?.data}
+      />
     </div>
   );
 };

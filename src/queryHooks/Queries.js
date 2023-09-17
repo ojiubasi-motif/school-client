@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 const localBaseUrl = "https://school-manager-i86s.onrender.com/api/v1/";
 // const localBaseUrl = "http://localhost:8080/api/v1/";
 const token =
-  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY2hvb2xfaWQiOiIyNDgyIiwiZmlyc3RfbmFtZSI6IkxpIiwibGFzdF9uYW1lIjoiQ2hpIiwiZW1haWwiOiJsaUBnbWFpbC5jb20iLCJ0cmFpbmVyX2lkIjoiNTEzNTciLCJpYXQiOjE2OTQ1MTYzNjQsImV4cCI6MTY5NDYwMjc2NH0.kNwKpalLAyPctGDxuhdGresdCgktHFUKqlLD0aJtALY";
+  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY2hvb2xfaWQiOiIyNDgyIiwiZmlyc3RfbmFtZSI6IkxpIiwibGFzdF9uYW1lIjoiQ2hpIiwiZW1haWwiOiJsaUBnbWFpbC5jb20iLCJ0cmFpbmVyX2lkIjoiNTEzNTciLCJpYXQiOjE2OTQ5NzY4ODIsImV4cCI6MTY5NTA2MzI4Mn0._DC_ez1vNW-yYb30Pgy7AzfN9MB24Kq6e0Y4gYJO09w";
 
 const createSchool = (school) => {
   return axios.post(`${localBaseUrl}schools`, school);
@@ -29,8 +29,18 @@ const createClass = (classData) => {
 };
 
 const createStudent = (studentData) => {
-  console.log("payload submitted==>", studentData);
+  // console.log("payload submitted==>", studentData);
   return axios.post(`${localBaseUrl}students`, studentData, {
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      token,
+    },
+  });
+};
+
+const createScore = (scorePayload) => {
+  // console.log("payload submitted==>", studentData);
+  return axios.post(`${localBaseUrl}/scores`, scorePayload, {
     headers: {
       "X-Requested-With": "XMLHttpRequest",
       token,
@@ -65,11 +75,11 @@ const fetchSingleStudent = ({ queryKey }) => {
   return axios.get(`${localBaseUrl}students/${student_id}/info`);
 };
 
-const fetchStudentAcademicRecords = ({ queryKey }) => {
+const fetchStudentAcademicRecords = async ({ queryKey }) => {
   const { session, term, subject, student_id } = queryKey[1];
-  // console.log("record query passed=>", queryKey[1]);
+
   const query =
-    typeof subject !== "string"
+    typeof subject !== "string" || subject.trim().length < 1
       ? {
           session,
           term,
@@ -82,13 +92,20 @@ const fetchStudentAcademicRecords = ({ queryKey }) => {
           student_id,
         };
 
-  return axios.get(`${localBaseUrl}/scores/aggregate`, {
+  const filteredRes = await axios.get(`${localBaseUrl}/scores/aggregate`, {
     headers: {
       "X-Requested-With": "XMLHttpRequest",
       token,
     },
     params: query,
   });
+  console.log("fetched again & the filtered res from db query=>", filteredRes);
+  return {
+    data:
+      filteredRes?.data?.data?.code === 600
+        ? filteredRes?.data?.data?.data
+        : filteredRes?.data?.data,
+  };
 };
 
 export const useAllStudentsData = (filter) => {
@@ -176,11 +193,47 @@ export const useAllTrainersData = () => {
 export const useAllSubjectsData = () => {
   return useQuery(
     "subjects",
-    () => {
-      return axios.get(`${localBaseUrl}subjects`);
+    async () => {
+      const subj = await axios.get(`${localBaseUrl}subjects`);
+      return {
+        data: subj?.data?.code === 600 ? subj?.data?.msg : subj?.data,
+      };
     },
     {
       // enabled:!!studentId,
+      staleTime: 300000, //refetch after 5 minutes
+    }
+  );
+};
+export const useOneSubjectData = (subjectId) => {
+  const queryClient = useQueryClient();
+  return useQuery(
+    ["thisSubject", subjectId],
+    async () => {
+      const getSubject = await axios.get(
+        `${localBaseUrl}subjects/${subjectId}`
+      );
+      return {
+        data:
+          getSubject?.data?.data?.code === 600 && getSubject?.data?.data?.data
+            ? getSubject?.data?.data?.data
+            : getSubject?.data?.data,
+      };
+    },
+    {
+      initialData: () => {
+        const allSubj = queryClient.getQueryData(["subjects"]);
+        const foundSubj = allSubj?.data?.mg?.find(
+          (subj) => subj?.subject_id === subjectId
+        );
+        if (foundSubj) {
+          return {
+            data: foundSubj,
+          };
+        } else {
+          return undefined;
+        }
+      },
       staleTime: 300000, //refetch after 5 minutes
     }
   );
@@ -241,6 +294,27 @@ export const useCreateStudentData = () => {
   });
 };
 
+export const useCreateScoreData = () => {
+  const queryClient = useQueryClient();
+  return useMutation(createScore, {
+    onSuccess: (data) => {
+      // console.log("success creating student!!!", data);
+      queryClient.invalidateQueries([
+        "studentScores",
+        {
+          subject: data?.data?.msg?.subject_id,
+          session: data?.data?.msg?.session_id,
+          student_id: data?.data?.msg?.student_id,
+          term: data?.data?.msg?.term,
+        },
+      ]);
+    },
+    onError: (err) => {
+      console.log("error while creating student", err);
+    },
+  });
+};
+
 export const useSchoolInview = (schoolId) => {
   const queryClient = useQueryClient();
   return useQuery(
@@ -253,8 +327,7 @@ export const useSchoolInview = (schoolId) => {
     {
       initialData: () => {
         // console.log("the schools=>", queryClient.getQueryData('schools')?.data)
-        const allSchools = queryClient.getQueryData(["schools"])?.data
-          ?.msg;
+        const allSchools = queryClient.getQueryData(["schools"])?.data?.msg;
         const schoolInview = allSchools?.find(
           (sch) => sch?.school_id === schoolId
         );
