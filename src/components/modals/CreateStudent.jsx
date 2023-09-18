@@ -123,6 +123,7 @@ const CreateStudent = (props) => {
         <ModalBody>
           <div className="p-2">
             <form className="row p-1" onSubmit={handleFormSubmit}>
+              
               {/* <span className="col-md-12 form-elements mb-2">
                 <h6 className="m-0 p-0">School</h6>
                 <select

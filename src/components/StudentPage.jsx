@@ -24,6 +24,7 @@ const StudentDetails = () => {
     subject: null,
   });
   const [currentSession, setCurrentSession] = useState(null);
+  const [currentTerm, setCurrentTerm] = useState(null);
   const [modal, setModal] = useState({ show: false, data: null });
 
   const {
@@ -35,15 +36,26 @@ const StudentDetails = () => {
   useEffect(() => {
     if (!Array.isArray(allSessions?.data)) return;
     const getCurrentSession = () => {
-      let thisYear = new Date(Date.now()).getFullYear();
-      for (var i = 0; i < allSessions?.data?.length; i++) {
+      let today = new Date(Date.now());
+      // ======configure the current session========
+      let allSessionlength = allSessions?.data?.length;
+      for (var i = allSessionlength - 1; i >= 0; i--) {
         if (
           new Date(allSessions?.data[i]?.estimated_start)?.getFullYear() ===
-          thisYear
+          today?.getFullYear()
         ) {
           setCurrentSession(() => allSessions?.data[i]);
           break;
         }
+      }
+      // ======configure the current term=======
+      let thisMonth = today?.getMonth();
+      if (thisMonth >= 8 && thisMonth <= 11) {
+        setCurrentTerm(() => 1);
+      } else if (thisMonth >= 0 && thisMonth <= 3) {
+        setCurrentTerm(() => 2);
+      } else if (thisMonth >= 4 && thisMonth <= 7) {
+        setCurrentTerm(() => 3);
       }
     };
 
@@ -71,8 +83,11 @@ const StudentDetails = () => {
     session: filteredFields?.session
       ? filteredFields?.session
       : currentSession?.session_id,
-    term: filteredFields?.term ? filteredFields?.term : 1,
-    subject: filteredFields?.subject && filteredFields?.subject !== "all"? filteredFields?.subject : null,
+    term: filteredFields?.term ? filteredFields?.term : currentTerm,
+    subject:
+      filteredFields?.subject && filteredFields?.subject !== "all"
+        ? filteredFields?.subject
+        : null,
   });
 
   // useEffect(()=>{
@@ -190,26 +205,32 @@ const StudentDetails = () => {
                     onChange={handleChange}
                     aria-label="Floating label select example"
                   >
-                    {/* <option selected="first" value="all">
-                      first
-                    </option> */}
-                    {["First", "Second", "Third"]?.map((option, index) => (
-                      <option
-                        // selected={option === "First" ? 1 : null}
-                        key={index}
-                        value={
-                          option === "First"
-                            ? 1
-                            : option === "Second"
-                            ? 2
-                            : option === "Third"
-                            ? 3
-                            : null
-                        }
-                      >
-                        {option}
-                      </option>
-                    ))}
+                    <option selected={currentTerm} value={currentTerm}>
+                      {currentTerm === 1
+                        ? "First"
+                        : currentTerm === 2
+                        ? "Second"
+                        : currentTerm === 3
+                        ? "Third"
+                        : null}
+                    </option>
+                    {[1, 2, 3]?.map((option, index) =>
+                      option !== currentTerm ? (
+                        <option
+                          // selected={option === "First" ? 1 : null}
+                          key={index}
+                          value={option}
+                        >
+                          {option === 1
+                            ? "First"
+                            : option === 2
+                            ? "Second"
+                            : option === 3
+                            ? "Third"
+                            : null}
+                        </option>
+                      ) : null
+                    )}
                   </select>
                   <label htmlFor="class">Term</label>
                 </div>
@@ -302,8 +323,7 @@ const StudentDetails = () => {
                     <h4 colSpan="4">error fetching data...</h4>
                   </td>
                 </tr>
-              ) : 
-                academicData?.data?.length > 0 ? (
+              ) : academicData?.data?.length > 0 ? (
                 academicData?.data?.map((termdata, index) => (
                   <AcademicRecord
                     key={index}

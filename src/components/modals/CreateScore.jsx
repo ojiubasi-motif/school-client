@@ -65,11 +65,6 @@ const CreateScore = (props) => {
     // console.log("this is the payload=>",payload)
     mutate(payload);
     setFields({ score: 0, subject: "", term: 0, assessment_type: "" });
-    // props?.setFilter({
-    //   ...props?.filter,
-    //   term,
-    //   subject,
-    // });
     props?.onHide();
   };
 

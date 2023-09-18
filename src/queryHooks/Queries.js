@@ -205,6 +205,7 @@ export const useAllSubjectsData = () => {
     }
   );
 };
+
 export const useOneSubjectData = (subjectId) => {
   const queryClient = useQueryClient();
   return useQuery(
