@@ -255,6 +255,7 @@ const StudentDetails = () => {
                   </select>
                   <label htmlFor="class">Subject</label>
                 </div>
+                
               </div>
               <button
                 className="btn btn-primary btn-sm text-nowrap"
