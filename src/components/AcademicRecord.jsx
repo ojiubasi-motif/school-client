@@ -15,8 +15,8 @@ const AcademicRecord = (props) => {
       : term == 3
       ? data?.record?.third_term
       : null;
-      
-      console.log("this is the scores==>",scores)
+
+  console.log("this is the scores==>", scores);
 
   const {
     data: subject,
@@ -25,9 +25,8 @@ const AcademicRecord = (props) => {
   } = useOneSubjectData(data?.subject);
   // console.log("this subject=>", subject);
   return (
-    <>
-      {/* subject */}
-      <tr className="border-bottom">
+    <tbody>
+      {/* <tr className="border-bottom">
         <td colSpan="4">
           <span className="d-flex justify-content-start align-items-center">
             <h4>{subject?.data?.name} </h4>
@@ -42,7 +41,7 @@ const AcademicRecord = (props) => {
             } term`}</h5>
           </span>
         </td>
-      </tr>
+      </tr> */}
       {/* scores */}
       {typeof scores !== "string" && scores?.length > 0
         ? scores?.map((scoreRecord, index) => (
@@ -63,22 +62,7 @@ const AcademicRecord = (props) => {
                   </div>
                 </div>
               </td>
-              <td>
-                <div className="d-flex justify-content-start align-items-center">
-                  <div className="ms-2">
-                    {/* <Link
-                  className="topnav-link"
-                  to={`/students/${data?.student_id}`}
-                  state={{ student: data?.student_id }}
-                > */}
-                    <h6 className="gen-paragraph fw-light">
-                      {subject ? subject?.data?.name : null}
-                    </h6>
-                    {/* </Link> */}
-                    {/* <p className="gen-paragraph">{item.email}</p> */}
-                  </div>
-                </div>
-              </td>
+              
 
               <td>
                 <div className="d-flex justify-content-start align-items-center">
@@ -112,7 +96,7 @@ const AcademicRecord = (props) => {
 
       {/* aggregate */}
       <tr className="border-bottom">
-        <td colSpan="3"></td>
+        <td colSpan="2"></td>
         <td>
           <h6 className="">
             Total:
@@ -126,7 +110,7 @@ const AcademicRecord = (props) => {
           </h6>
         </td>
       </tr>
-    </>
+    </tbody>
   );
 };
 

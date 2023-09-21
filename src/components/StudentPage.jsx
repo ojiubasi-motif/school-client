@@ -6,6 +6,7 @@ import {
   useAllSessionsData,
   useAllSubjectsData,
   useClassInview,
+  useOneSubjectData,
   useSchoolInview,
   // useCurrentSessionData,
   useSingleStudentData,
@@ -69,6 +70,12 @@ const StudentDetails = () => {
       [e?.target?.name]: e?.target?.value,
     });
   };
+
+  // const {
+  //   data: subject,
+  //   isLoading: loadingSubject,
+  //   isError: errorloadingSubjects,
+  // } = useOneSubjectData(data?.subject);
 
   const { data, isLoading, isError } = useSingleStudentData(
     location?.state?.student
@@ -255,90 +262,121 @@ const StudentDetails = () => {
                   </select>
                   <label htmlFor="class">Subject</label>
                 </div>
-                
               </div>
-              <button
-                className="btn btn-primary btn-sm text-nowrap"
-                onClick={(e) => {
-                  e?.preventDefault();
-                  setModal({
-                    show: true,
-                    data: {
-                      student: location?.state?.student
-                        ? location?.state?.student
-                        : data?.data?.msg,
-                      session: currentSession,
-                    },
-                  });
-                }}
-              >
-                Add Score
-                <Plus size={"16px"} className="" />
-              </button>
+
               {/* =====filter group ends===== */}
             </div>
           </span>
 
           {/* ===========filtered data========== */}
 
-          <table className="table table-borderless table-striped mt-3">
-            <thead>
-              <tr className="border-bottom">
-                <th scope="col">
-                  <p className="gen-paragraph">Session</p>
-                </th>
-                {/* <th scope="col">
+          {loadingAcademicData ? (
+            <h4>please wait...</h4>
+          ) : isErrorFetchingAcademicData ? (
+            <h4>error fetching academic records...</h4>
+          ) : academicData?.data?.length > 0 ? (
+            academicData?.data?.map((termdata, index) => (
+              <>
+                <table
+                  key={index}
+                  className="table table-borderless table-striped mt-3"
+                >
+                  <thead>
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className={`text-white ${
+                          index % 2 !== 0 && index % 3 !== 0
+                            ? "bg-primary"
+                            : index % 2 == 0
+                            ? "bg-danger"
+                            : "bg-warning"
+                        }`}
+                      >
+                        <span className="d-flex justify-content-between align-items-center">
+                          <h4>
+                            {
+                              allSubjects?.data?.find(
+                                (subj) => subj?.subject_id === termdata?.subject
+                              )?.name
+                            }
+                          </h4>
+
+                          <h5 className="text-white ms-3">{`${
+                            filteredFields?.term && filteredFields?.term == 1
+                              ? "First"
+                              : filteredFields?.term &&
+                                filteredFields?.term == 2
+                              ? "Second"
+                              : filteredFields?.term &&
+                                filteredFields?.term == 3
+                              ? "Third"
+                              : !filteredFields?.term && currentTerm == 1
+                              ? "First"
+                              : !filteredFields?.term && currentTerm == 2
+                              ? "Second"
+                              : !filteredFields?.term && currentTerm == 3
+                              ? "Third"
+                              : null
+                          } term`}</h5>
+                          <span>
+                            <button
+                              className="btn btn-primary btn-sm btn-outline-light text-nowrap"
+                              onClick={(e) => {
+                                e?.preventDefault();
+                                setModal({
+                                  show: true,
+                                  data: {
+                                    student: location?.state?.student
+                                      ? location?.state?.student
+                                      : data?.data?.msg,
+                                    session: currentSession,
+                                    term:currentTerm,
+                                    subject:termdata?.subject
+                                  },
+                                });
+                              }}
+                            >
+                              Add Score
+                              <Plus size={"16px"} className="" />
+                            </button>
+                          </span>
+                          <span></span>
+                        </span>
+                      </td>
+                    </tr>
+                    <tr className="border-bottom">
+                      <th scope="col">
+                        <p className="gen-paragraph">Session</p>
+                      </th>
+                      {/* <th scope="col">
                       <p className="gen-paragraph">Term</p>
                     </th> */}
-                <th scope="col">
-                  <p className="gen-paragraph">Subject</p>
-                </th>
-                <th scope="col">
-                  <p className="gen-paragraph">Assesment Type</p>
-                </th>
-                <th scope="col">
-                  <p className="gen-paragraph">Score</p>
-                </th>
-                {/* <th scope="col">
+                      {/* <th scope="col">
+                        <p className="gen-paragraph">Subject</p>
+                      </th> */}
+                      <th scope="col">
+                        <p className="gen-paragraph">Assesment Type</p>
+                      </th>
+                      <th scope="col">
+                        <p className="gen-paragraph">Score</p>
+                      </th>
+                      {/* <th scope="col">
                       <p className="gen-paragraph">Total</p>
                     </th> */}
-              </tr>
-            </thead>
-            <tbody>
-              {loadingAcademicData ? (
-                <tr>
-                  <td>
-                    <h4 colSpan="4">please wait...</h4>
-                  </td>
-                </tr>
-              ) : academicData?.data?.code == 606 &&
-                isErrorFetchingAcademicData ? (
-                <tr>
-                  <td>
-                    <h4 colSpan="4">please login...</h4>
-                  </td>
-                </tr>
-              ) : isErrorFetchingAcademicData ? (
-                <tr>
-                  <td>
-                    <h4 colSpan="4">error fetching data...</h4>
-                  </td>
-                </tr>
-              ) : academicData?.data?.length > 0 ? (
-                academicData?.data?.map((termdata, index) => (
+                    </tr>
+                  </thead>
                   <AcademicRecord
                     key={index}
                     data={termdata}
                     term={filteredFields?.term ? filteredFields?.term : 1}
                   />
-                ))
-              ) : (
-                <td>
-                  <h4 colSpan="4">No record found for this search</h4>
-                </td>
-              )}
-            </tbody>
-          </table>
+                </table>
+              </>
+            ))
+          ) : (
+            <h4>No record found for this search</h4>
+          )}
         </>
       ) : null}
       <CreateScore
