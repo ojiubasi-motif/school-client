@@ -35,7 +35,7 @@ const FormFields = (props) => {
       </section>
     </div>
   ) : (
-    <div className={`${inputProps.fieldWidth?inputProps.fieldWidth:'col-12 col-md-6'}`}>
+    <div className={`${inputProps.fieldWidth?inputProps.fieldWidth:'col-12 '}`}>
       <section>
         <label>{label}</label>
         {inputProps.type === "textarea" ? (

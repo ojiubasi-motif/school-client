@@ -1,22 +1,18 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 import { MoreVertical, Plus } from "react-feather";
 import { Link } from "react-router-dom";
 import { useAllSchoolsData } from "../queryHooks/Queries";
-import {useQueryClient} from 'react-query'
 import CreateSchool from "./modals/CreateSchool";
 
 const Schools = () => {
-  const [createModal, setModal] = useState(false);
-  const queryClient = useQueryClient();
+  const [modal, setModal] = useState({ show: false });
   const {
     data: allSchools,
     isLoading: isLoadingAllSchools,
     isError: errorloadingSchools,
   } = useAllSchoolsData();
   // console.log("see the schools returned", allSchools?allSchools:"still loading...");
-
-  
 
   return (
     <>
@@ -30,7 +26,7 @@ const Schools = () => {
             className="btn btn-primary btn-sm text-nowrap"
             onClick={(e) => {
               e?.preventDefault();
-              setModal(true);
+              setModal({show:true});
             }}
           >
             Create School
@@ -66,7 +62,6 @@ const Schools = () => {
                 <tr key={index} className="border-bottom ">
                   <td>
                     <div className="d-flex justify-content-start align-items-center">
-                      
                       <div className="ms-2">
                         <Link
                           className="topnav-link"
@@ -122,8 +117,7 @@ const Schools = () => {
           </tbody>
         </table>
       </div>
-
-      <CreateSchool show={createModal} onHide={() => setModal(false)} />
+      {modal?.show ? <CreateSchool modal={modal} hideModal={setModal} /> : null}
     </>
   );
 };

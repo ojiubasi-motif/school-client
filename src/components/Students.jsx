@@ -219,7 +219,7 @@ const Students = () => {
                   character={character}
                   school={location?.state?.school?.name}
                 />
-              ) :null
+              ) : null
             )
           ) : (
             <div>No student record found</div>
@@ -234,11 +234,10 @@ const Students = () => {
         </tbody>
       </table>
 
-      <CreateStudent
-        show={modal?.show}
-        onHide={() => setModal(false)}
-        data={modal?.data}
-      />
+      {modal?.show ? (
+        <CreateStudent modal={modal} hideModal={setModal} />
+      ) : null}
+
       {/* =====end-of-table====== */}
     </div>
   );

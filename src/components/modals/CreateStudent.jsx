@@ -27,7 +27,7 @@ import { Plus, X } from "react-feather";
 
 const CreateStudent = (props) => {
   //   const queryClient = useQueryClient();
-  const { data } = props;
+  const { hideModal, modal } = props;
   const [formData, setData] = useState({
     school: null,
     first_name: "",
@@ -36,7 +36,7 @@ const CreateStudent = (props) => {
     grade: null,
     arm: null,
   });
-// console.log("form data fo all classes=>", data?.thisSchool?.data)
+  // console.log("form data fo all classes=>", data?.thisSchool?.data)
   const {
     data: allSchools,
     isLoading: loadingSchools,
@@ -48,7 +48,9 @@ const CreateStudent = (props) => {
     isLoading: loadingClasses,
     isError: errorLoadingClasses,
   } = useAllClassesData(
-    formData?.school ? formData?.school?.school_id : data?.thisSchool?.data?.school_id
+    formData?.school
+      ? formData?.school?.school_id
+      : modal?.data?.thisSchool?.data?.school_id
   );
 
   //   const schoolInview = queryClient?.getQueryData('school-inview')
@@ -61,12 +63,16 @@ const CreateStudent = (props) => {
     const { school, first_name, last_name, other_name, grade, arm } = formData;
     // console.log("the head teacher selected=++>",head)
     const payload = {
-      school_id: school ? school?.school_id : data?.thisSchool?.data?.school_id,
+      school_id: school ? school?.school_id : modal?.data?.thisSchool?.data?.school_id,
       first_name,
       last_name,
       other_name,
-      arm:arm?arm:data?.thisClass?.data?.arms?.length>0?data?.thisClass?.data?.arms[0]:null,
-      grade: grade?grade?.grade_id:data?.thisClass?.data?.grade_id,
+      arm: arm
+        ? arm
+        : modal?.data?.thisClass?.data?.arms?.length > 0
+        ? modal?.data?.thisClass?.data?.arms[0]
+        : null,
+      grade: grade ? grade?.grade_id : modal?.data?.thisClass?.data?.grade_id,
     };
     mutate(payload);
     setData({
@@ -77,7 +83,7 @@ const CreateStudent = (props) => {
       grade: null,
       arm: null,
     });
-    props?.onHide();
+    !isLoading && !isError? hideModal({...modal,show:false}):null;
   };
 
   const handleChange = (e) => {
@@ -115,189 +121,181 @@ const CreateStudent = (props) => {
 
   // console.log("arms===>", formData?.grade?.arms);
   return (
-    <Modal {...props} className="" backdrop="static" keyboard={false} centered>
-      <ModalDialog>
-        <ModalHeader>
-          <ModalTitle>Create Student</ModalTitle>
-        </ModalHeader>
-        <ModalBody>
-          <div className="p-2">
-            <form className="row p-1" onSubmit={handleFormSubmit}>
-              
-              {/* <span className="col-md-12 form-elements mb-2">
-                <h6 className="m-0 p-0">School</h6>
-                <select
-                  className="form-select"
-                  // type="text"
-                  name="school"
-                  onChange={handleChange}
+    <div
+      className="position-fixed d-flex align-items-center justify-content-center"
+      style={{
+        zIndex: "999",
+        top: "0",
+        left: "0",
+        height: "100vh",
+        width: "100vw",
+        backgroundColor: "rgba(29,27,27,0.52)",
+      }}
+    >
+      <div
+        className="bg-light px-2 py-2 rounded d-flex flex-column justify-content-between position-relative"
+        style={{ width: "500px" }}
+      >
+        <span
+          onClick={() => hideModal({ ...modal, show: false })}
+          className="fw-bold text-light border border-light bg-dark d-flex align-items-center justify-content-center cursor-pointer position-absolute "
+          style={{
+            top: "-10px",
+            right: "-10px",
+            height: "40px",
+            width: "40px",
+            cursor: "pointer",
+            borderRadius: "50%",
+          }}
+        >
+          X
+        </span>
+
+        <h6 className="d-flex justify-content-center">
+          Create Student
+        </h6>
+        <hr className="mt-2"/>
+        <div className="p-2">
+          <form className="row p-1" onSubmit={handleFormSubmit}>
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2">
+              <h6>Student School</h6>
+              <select
+                className="form-select ms-2"
+                style={{width:"50%"}}
+                // type="text"
+                name="school"
+                // placeholder="Enter school title"
+                // id="school"
+                // value={formData?.head}
+                onChange={handleChange}
+              >
+                <option
+                  // defaultValue={JSON.stringify(data?.data)}
+                  selected={modal?.data?.thisSchool?.data}
+                  value={JSON.stringify(modal?.data?.thisSchool?.data)}
                 >
-                  <option defaultValue="">--Select a School--</option>
-                  {allSchools?.data?.msg?.length > 0 ? 
-                    allSchools?.data?.msg?.map((school, index) => (
-                      <option
-                        key={index}
-                        value={JSON.stringify({id:school?.school_id, name:school?.name})}
-                      >{school?.name}</option>
-                    ))
-                   : loadingSchools ? (
-                    <option>loading schools...</option>
-                  ) : errorLoadingSchools ? (
-                    <option>Error while loading schools!</option>
-                  ) : (
-                    <option>No school found</option>
-                  )}
-                </select>
-              </span> */}
-              {/* <span className="col-md-12 form-elements mb-2">
-                <h6 className="m-0 p-0">School</h6>
-                <input
-                  className="form-check-input"
-                  type="text"
-                  name="school"
-                  placeholder={`${data?.name}`}
-                  id="school"
-                  value={`${data?.name}`}
-                  readOnly={true}
-                />
-              </span> */}
-
-              <span className="col-md-12 form-elements">
-                <h6>Student School</h6>
-                <select
-                  className="form-select"
-                  // type="text"
-                  name="school"
-                  // placeholder="Enter school title"
-                  // id="school"
-                  // value={formData?.head}
-                  onChange={handleChange}
-                >
-                  <option
-                    // defaultValue={JSON.stringify(data?.data)}
-                    selected={data?.thisSchool?.data}
-                    value={JSON.stringify(data?.thisSchool?.data)}
-                  >
-                    {data?.thisSchool?.data?.name}
-                  </option>
-                  {allSchools?.data?.msg?.length > 0 ? (
-                    allSchools?.data?.msg?.map((school, index) =>
-                      school?.school_id !== data?.thisSchool?.data?.school_id ? (
-                        <option key={index} value={JSON.stringify(school)}>
-                          {school?.name}
-                        </option>
-                      ) : null
-                    )
-                  ) : loadingSchools ? (
-                    <option>loading trainers...</option>
-                  ) : errorLoadingSchools ? (
-                    <option>Error while loading trainers!</option>
-                  ) : (
-                    <option>No trainer record found</option>
-                  )}
-                </select>
-              </span>
-              {/* ===========names========== */}
-              <span className="col-md-12 form-elements mb-2">
-                <h6>First Name</h6>
-                <input
-                  className="form-check-input"
-                  type="text"
-                  name="first_name"
-                  placeholder="John"
-                  id="f_name"
-                  pattern="^[A-Za-z0-9]{1,30}$"
-                  // errorMessage= "Message must not be empty"
-                  value={formData?.first_name}
-                  onChange={handleChange}
-                />
-              </span>
-
-              <span className="col-md-12 form-elements mb-2">
-                <h6>Last Name</h6>
-                <input
-                  className="form-check-input"
-                  type="text"
-                  name="last_name"
-                  placeholder="Doe"
-                  id="l_name"
-                  pattern="^[A-Za-z0-9]{1,30}$"
-                  // errorMessage= "Message must not be empty"
-                  value={formData?.last_name}
-                  onChange={handleChange}
-                />
-              </span>
-
-              <span className="col-md-12 form-elements mb-2">
-                <h6>Other Name</h6>
-                <input
-                  className="form-check-input"
-                  type="text"
-                  name="other_name"
-                  placeholder="Don"
-                  id="o_name"
-                  pattern="^[A-Za-z0-9]{1,30}$"
-                  // errorMessage= "Message must not be empty"
-                  value={formData?.other_name}
-                  onChange={handleChange}
-                />
-              </span>
-              {/* ====names end======= */}
-
-              <span className="col-md-12 form-elements">
-                <h6>Grade</h6>
-                <select
-                  className="form-select"
-                  name="grade"
-                  onChange={handleChange}
-                >
-                  <option defaultValue="">--Select Student Grade--</option>
-                  {allClasses?.data?.length > 0 ? (
-                    allClasses?.data?.map((grade, index) => (
-                      <option key={index} value={JSON.stringify(grade)}>
-                        {grade?.name}
+                  {modal?.data?.thisSchool?.data?.name}
+                </option>
+                {allSchools?.data?.msg?.length > 0 ? (
+                  allSchools?.data?.msg?.map((school, index) =>
+                    school?.school_id !== modal?.data?.thisSchool?.data?.school_id ? (
+                      <option key={index} value={JSON.stringify(school)}>
+                        {school?.name}
                       </option>
-                    ))
-                  ) : loadingClasses ? (
-                    <option>loading grades...</option>
-                  ) : errorLoadingClasses ? (
-                    <option>Error while loading grades!</option>
-                  ) : (
-                    <option>No grade record found for this school</option>
-                  )}
-                </select>
-              </span>
+                    ) : null
+                  )
+                ) : loadingSchools ? (
+                  <option>loading trainers...</option>
+                ) : errorLoadingSchools ? (
+                  <option>Error while loading trainers!</option>
+                ) : (
+                  <option>No trainer record found</option>
+                )}
+              </select>
+            </span>
+            {/* ===========names========== */}
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2">
+              <h6>First Name</h6>
+              <input
+                className="form-check-input ms-2"
+                type="text"
+                name="first_name"
+                placeholder="John"
+                id="f_name"
+                pattern="^[A-Za-z0-9]{1,30}$"
+                // errorMessage= "Message must not be empty"
+                value={formData?.first_name}
+                onChange={handleChange}
+              />
+            </span>
 
-              <span className="row mt-3">
-                <h6>Arm</h6>
-                <select
-                  className="form-select"
-                  name="arm"
-                  onChange={handleChange}
-                >
-                  {formData?.grade && formData?.grade?.arms?.length > 0 ? (
-                    formData?.grade?.arms.map((arm, index) => (
-                      <option key={index} value={arm}>
-                        {arm}
-                      </option>
-                    ))
-                  ) : !formData?.grade ? (
-                    <option>Select a Grade first</option>
-                  ) : (
-                    <option>No arm found for this grade selected</option>
-                  )}
-                </select>
-              </span>
-            </form>
-          </div>
-        </ModalBody>
-        <ModalFooter className="mt-3">
-          <button className="shadow" onClick={props.onHide}>
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2">
+              <h6>Last Name</h6>
+              <input
+                className="form-check-input ms-2"
+                type="text"
+                name="last_name"
+                placeholder="Doe"
+                id="l_name"
+                pattern="^[A-Za-z0-9]{1,30}$"
+                // errorMessage= "Message must not be empty"
+                value={formData?.last_name}
+                onChange={handleChange}
+              />
+            </span>
+
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2">
+              <h6>Other Name</h6>
+              <input
+                className="form-check-input ms-2"
+                type="text"
+                name="other_name"
+                placeholder="Don"
+                id="o_name"
+                pattern="^[A-Za-z0-9]{1,30}$"
+                // errorMessage= "Message must not be empty"
+                value={formData?.other_name}
+                onChange={handleChange}
+              />
+            </span>
+            {/* ====names end======= */}
+
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements">
+              <h6>Grade</h6>
+              <select
+                className="form-select ms-2"
+                style={{width:"50%"}}
+                name="grade"
+                onChange={handleChange}
+              >
+                <option defaultValue="">--Select Student Grade--</option>
+                {allClasses?.data?.length > 0 ? (
+                  allClasses?.data?.map((grade, index) => (
+                    <option key={index} value={JSON.stringify(grade)}>
+                      {grade?.name}
+                    </option>
+                  ))
+                ) : loadingClasses ? (
+                  <option>loading grades...</option>
+                ) : errorLoadingClasses ? (
+                  <option>Error while loading grades!</option>
+                ) : (
+                  <option>No grade record found for this school</option>
+                )}
+              </select>
+            </span>
+
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center mt-3">
+              <h6>Arm</h6>
+              <select
+                className="form-select ms-2"
+                style={{width:"50%"}}
+                name="arm"
+                onChange={handleChange}
+              >
+                {formData?.grade && formData?.grade?.arms?.length > 0 ? (
+                  formData?.grade?.arms.map((arm, index) => (
+                    <option key={index} value={arm}>
+                      {arm}
+                    </option>
+                  ))
+                ) : !formData?.grade ? (
+                  <option>Select a Grade first</option>
+                ) : (
+                  <option>No arm found for this grade selected</option>
+                )}
+              </select>
+            </span>
+          </form>
+        </div>
+
+        <span className="d-flex justify-content-end align-items-center mt-2">
+          <button className="shadow" onClick={ () => hideModal({ ...modal, show: false })}>
             Cancel
           </button>
 
           <button
-            className="default-btn"
+            className="default-btn ms-2"
             style={{ border: "2px solid #00AFEF", minWidth: "30px" }}
             onClick={handleFormSubmit}
             disabled={isLoading}
@@ -305,9 +303,9 @@ const CreateStudent = (props) => {
           >
             Create
           </button>
-        </ModalFooter>
-      </ModalDialog>
-    </Modal>
+        </span>
+      </div>
+    </div>
   );
 };
 

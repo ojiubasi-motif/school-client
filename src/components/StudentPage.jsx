@@ -1,21 +1,19 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useQueryClient } from "react-query";
+import { useLocation } from "react-router-dom";
 import {
   useAllSessionsData,
   useAllSubjectsData,
   useClassInview,
-  useOneSubjectData,
   useSchoolInview,
-  // useCurrentSessionData,
   useSingleStudentData,
   useStudentAcademicData,
 } from "../queryHooks/Queries";
 import { session, subjects } from "./constants/dummy";
 import AcademicRecord from "./AcademicRecord";
 import { Plus } from "react-feather";
-import CreateScore from "./modals/CreateScore";
+import AddScoreModal from "./modals/AddScoreModal";
+import { PropagateLoader } from "react-spinners";
 
 const StudentDetails = () => {
   const location = useLocation();
@@ -71,12 +69,6 @@ const StudentDetails = () => {
     });
   };
 
-  // const {
-  //   data: subject,
-  //   isLoading: loadingSubject,
-  //   isError: errorloadingSubjects,
-  // } = useOneSubjectData(data?.subject);
-
   const { data, isLoading, isError } = useSingleStudentData(
     location?.state?.student
   );
@@ -85,6 +77,7 @@ const StudentDetails = () => {
     data: academicData,
     isLoading: loadingAcademicData,
     isError: isErrorFetchingAcademicData,
+    isFetching: isRefreshing,
   } = useStudentAcademicData({
     student_id: location?.state?.student,
     session: filteredFields?.session
@@ -96,10 +89,6 @@ const StudentDetails = () => {
         ? filteredFields?.subject
         : null,
   });
-
-  // useEffect(()=>{
-
-  // },[academicData])
 
   const {
     data: school,
@@ -122,13 +111,22 @@ const StudentDetails = () => {
     schoolId: data?.data?.msg?.school_id,
   });
 
-  // console.log("from the query==>", academicData);
   return (
     <div className="mt-1 p-3 pb-0">
       {isError ? (
-        <h4>error occured!!!</h4>
+        <h5
+          className="w-100 d-flex text-danger justify-content-center align-items-center"
+          style={{ height: "20px" }}
+        >
+          error occured!!!
+        </h5>
       ) : isLoading ? (
-        <h5>loading...</h5>
+        <h4
+          className="w-100 d-flex justify-content-center align-items-center"
+          style={{ height: "20px" }}
+        >
+          <PropagateLoader color="#0D6EFD" size={10} loading={true} />
+        </h4>
       ) : data?.data?.code == 600 ? (
         <>
           {/*========student details========= */}
@@ -263,6 +261,43 @@ const StudentDetails = () => {
                   <label htmlFor="class">Subject</label>
                 </div>
               </div>
+              {/*+++++create score for a new subject btn+++++++++ */}
+              <span>
+                <button
+                  className="btn btn-primary btn-sm btn-outline-light text-nowrap"
+                  onClick={(e) => {
+                    e?.preventDefault();
+                    setModal({
+                      show: true,
+                      data: {
+                        student: {
+                          id: data?.data?.msg?.student_id,
+                          name: `${data?.data?.msg?.first_name} ${data?.data?.msg?.last_name}`,
+                          school: data?.data?.msg?.school_id,
+                          class: {
+                            id: data?.data?.msg?.grade,
+                            name: studentClass?.data?.name,
+                          },
+                        },
+                        session: {
+                          id: currentSession?.session_id,
+                          title: currentSession?.title,
+                        },
+                        term: currentTerm,
+                        allSubjects: allSubjects?.data,
+                        filteredSubject:
+                          filteredFields?.subject &&
+                          filteredFields?.subject !== "all"
+                            ? filteredFields?.subject
+                            : null,
+                      },
+                    });
+                  }}
+                >
+                  Create Score
+                  <Plus size={"16px"} className="" />
+                </button>
+              </span>
 
               {/* =====filter group ends===== */}
             </div>
@@ -271,9 +306,19 @@ const StudentDetails = () => {
           {/* ===========filtered data========== */}
 
           {loadingAcademicData ? (
-            <h4>please wait...</h4>
+            <h4
+              className="w-100 d-flex justify-content-center align-items-center"
+              style={{ height: "20px" }}
+            >
+              <PropagateLoader color="#0D6EFD" size={10} loading={true} />
+            </h4>
           ) : isErrorFetchingAcademicData ? (
-            <h4>error fetching academic records...</h4>
+            <h4
+              className="w-100 d-flex text-danger justify-content-center align-items-center"
+              style={{ height: "20px" }}
+            >
+              error fetching academic records...
+            </h4>
           ) : academicData?.data?.length > 0 ? (
             academicData?.data?.map((termdata, index) => (
               <>
@@ -285,7 +330,7 @@ const StudentDetails = () => {
                     <tr>
                       <td
                         colSpan="4"
-                        className={`text-white ${
+                        className={`text-white bg-opacity-75 ${
                           index % 2 !== 0 && index % 3 !== 0
                             ? "bg-primary"
                             : index % 2 == 0
@@ -327,12 +372,29 @@ const StudentDetails = () => {
                                 setModal({
                                   show: true,
                                   data: {
-                                    student: location?.state?.student
-                                      ? location?.state?.student
-                                      : data?.data?.msg,
-                                    session: currentSession,
-                                    term:currentTerm,
-                                    subject:termdata?.subject
+                                    student: {
+                                      id: data?.data?.msg?.student_id,
+                                      name: `${data?.data?.msg?.first_name} ${data?.data?.msg?.last_name}`,
+                                      school: data?.data?.msg?.school_id,
+                                      class: {
+                                        id: data?.data?.msg?.grade,
+                                        name: studentClass?.data?.name,
+                                      },
+                                    },
+                                    session: {
+                                      id: currentSession?.session_id,
+                                      title: currentSession?.title,
+                                    },
+                                    term: currentTerm,
+                                    subject: allSubjects?.data?.find(
+                                      (subj) =>
+                                        subj?.subject_id === termdata?.subject
+                                    ),
+                                    filteredSubject:
+                                      filteredFields?.subject &&
+                                      filteredFields?.subject !== "all"
+                                        ? filteredFields?.subject
+                                        : null,
                                   },
                                 });
                               }}
@@ -370,20 +432,28 @@ const StudentDetails = () => {
                     key={index}
                     data={termdata}
                     term={filteredFields?.term ? filteredFields?.term : 1}
+                    refreshingData={isRefreshing}
                   />
                 </table>
               </>
             ))
           ) : (
-            <h4>No record found for this search</h4>
+            <h5
+              className="w-100 d-flex justify-content-center text-danger align-items-center"
+              style={{ height: "20px" }}
+            >
+              No record found for this search
+            </h5>
           )}
         </>
       ) : null}
-      <CreateScore
-        show={modal?.show}
-        onHide={() => setModal(false)}
-        data={modal?.data}
-      />
+      {modal?.show ? (
+        <AddScoreModal
+          modal={modal}
+          hideModal={setModal}
+          // data={modal?.data}
+        />
+      ) : null}
     </div>
   );
 };

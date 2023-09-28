@@ -25,15 +25,15 @@ import {
   useCreateSchoolData,
   useSchoolInview,
 } from "../../queryHooks/Queries";
-import {useQueryClient} from 'react-query'
+import { useQueryClient } from "react-query";
 import { Plus, X } from "react-feather";
 
 const CreateClass = (props) => {
   const armForm = useRef();
-  const { data } = props;
+  const { hideModal, modal } = props;
   const [formData, setData] = useState({
     title: "",
-    head:{},
+    head: {},
     subjects: [],
     arms: [],
   });
@@ -48,23 +48,27 @@ const CreateClass = (props) => {
     isLoading: loadingSubjects,
     isError: errorLoadingSubjects,
   } = useAllSubjectsData();
-  
+
   // const schoolInview = queryClient?.getQueryData('school-inview')
-  const {data:allSchools, isLoading:loadingSchools, isError:errorLoadingSchools} = useAllSchoolsData();
+  const {
+    data: allSchools,
+    isLoading: loadingSchools,
+    isError: errorLoadingSchools,
+  } = useAllSchoolsData();
   // console.log("the school inview=>", data);
   const { mutate, isError, isLoading } = useCreateClassData();
 
   const handleFormSubmit = (e) => {
     e?.preventDefault();
-    const { title, head,arms, subjects } = formData;
+    const { title, head, arms, subjects } = formData;
     // console.log("the head teacher selected=++>",head)
     const payload = {
       name: title,
-      school_id:data?.data?.school_id,
-      head_teacher_id:head?.id,
-      head_teacher_name:head?.name,
+      school_id: modal?.data?.data?.school_id,
+      head_teacher_id: head?.id,
+      head_teacher_name: head?.name,
       subjects,
-      arms
+      arms,
     };
     mutate(payload);
     setData({
@@ -73,7 +77,7 @@ const CreateClass = (props) => {
       subjects: [],
       arms: [],
     });
-    props?.onHide();
+    !isLoading && !isError ? hideModal({ ...modal, show: false }) : null;
   };
 
   const addArm = (e) => {
@@ -87,7 +91,7 @@ const CreateClass = (props) => {
     // setError({ name: null, errorMsg: null });
     const { name, type, checked, id, value } = e?.target;
     // if(name ==="head") console.log('the head trainer=>',JSON.parse(value));
-    
+
     type === "checkbox" && name === "subjects" && checked
       ? setData({ ...formData, subjects: [...formData.subjects, id] })
       : type === "checkbox" && name === "subjects" && !checked
@@ -107,24 +111,51 @@ const CreateClass = (props) => {
       : type === "time" && id === "to"
       ? setData({ ...formData, time: { ...formData.time, to: value } })
       : name === "head"
-      ?setData({...formData, head:JSON.parse(value)})
+      ? setData({ ...formData, head: JSON.parse(value) })
       : setData({
           ...formData,
           [name]: value,
         });
   };
 
-  // console.log("arms===>", formData?.arms);
+  // console.log("subjects in createClass===>", allSubjects?.data);
   return (
-    <Modal {...props} className="" backdrop="static" keyboard={false} centered>
-      <ModalDialog>
-        <ModalHeader>
-          <ModalTitle>Create Class</ModalTitle>
-        </ModalHeader>
-        <ModalBody>
-          <div className="p-2">
-            <form className="row p-1" onSubmit={handleFormSubmit}>
-              {/* <span className="col-md-12 form-elements mb-2">
+    <div
+      className="position-fixed d-flex align-items-center justify-content-center"
+      style={{
+        zIndex: "999",
+        top: "0",
+        left: "0",
+        height: "100vh",
+        width: "100vw",
+        backgroundColor: "rgba(29,27,27,0.52)",
+      }}
+    >
+      <div
+        className="bg-light px-2 py-2 rounded d-flex flex-column justify-content-between position-relative"
+        style={{ width: "500px" }}
+      >
+        <span
+          onClick={() => hideModal({ ...modal, show: false })}
+          className="fw-bold text-light border border-light bg-dark d-flex align-items-center justify-content-center cursor-pointer position-absolute "
+          style={{
+            top: "-10px",
+            right: "-10px",
+            height: "40px",
+            width: "40px",
+            cursor: "pointer",
+            borderRadius: "50%",
+          }}
+        >
+          X
+        </span>
+
+        <h6 className="d-flex justify-content-center">Create Class</h6>
+        <hr className="mt-2" />
+
+        <div className="p-2">
+          <form className="row p-1" onSubmit={handleFormSubmit}>
+            {/* <span className="col-md-12 form-elements mb-2">
                 <h6 className="m-0 p-0">School</h6>
                 <input
                   className="form-check-input"
@@ -137,86 +168,92 @@ const CreateClass = (props) => {
                 />
               </span> */}
 
-              <span className="col-md-12 form-elements">
-                <h6>School</h6>
-                <select
-                  className="form-select"
-                  // type="text"
-                  name="school"
-                  // placeholder="Enter school title"
-                  // id="school"
-                  // value={formData?.head}
-                  onChange={handleChange}
-                >
-                  <option defaultValue={data?.data?.school_id} selected={data?.data?.school_id}>{data?.data?.name}</option>
-                  {allSchools?.data?.msg?.length > 0 ? 
-                    allSchools?.data?.msg?.map((school, index) => school?.school_id !== data?.data?.school_id?(
-                      <option
-                        key={index}
-                        value={JSON.stringify(school)}
-                      >{school?.name}</option>
-                    ):null)
-                   : loadingTrainers ? (
-                    <option>loading trainers...</option>
-                  ) : errorLoadingtrainers ? (
-                    <option>Error while loading trainers!</option>
-                  ) : (
-                    <option>No trainer record found</option>
-                  )}
-                </select>
-              </span>
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center mb-2 form-elements">
+              <h6>School</h6>
+              <select
+                className="form-select ms-2"
+                name="school"
+                onChange={handleChange}
+                style={{ width: "50%" }}
+              >
+                <option selected={modal?.data?.data?.school_id}>
+                  {modal?.data?.data?.name}
+                </option>
+                {allSchools?.data?.msg?.length > 0 ? (
+                  allSchools?.data?.msg?.map((school, index) =>
+                    school?.school_id !== modal?.data?.data?.school_id ? (
+                      <option key={index} value={JSON.stringify(school)}>
+                        {school?.name}
+                      </option>
+                    ) : null
+                  )
+                ) : loadingTrainers ? (
+                  <option>loading trainers...</option>
+                ) : errorLoadingtrainers ? (
+                  <option>Error while loading trainers!</option>
+                ) : (
+                  <option>No trainer record found</option>
+                )}
+              </select>
+            </span>
 
-              <span className="col-md-12 form-elements mb-2">
-                <h6>Class Title</h6>
-                <input
-                  className="form-check-input"
-                  type="text"
-                  name="title"
-                  placeholder="Primary 1"
-                  id="title"
-                  pattern="^[A-Za-z0-9]{1,30}$"
-                  // errorMessage= "Message must not be empty"
-                  value={formData?.title}
-                  onChange={handleChange}
-                />
-              </span>
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center mb-2 form-elements mb-2">
+              <h6>Class Title</h6>
+              <input
+                className="form-check-input ms-2"
+                type="text"
+                name="title"
+                placeholder="Primary 1"
+                id="title"
+                pattern="^[A-Za-z0-9]{1,30}$"
+                style={{ width: "50%" }}
+                // errorMessage= "Message must not be empty"
+                value={formData?.title}
+                onChange={handleChange}
+              />
+            </span>
 
-              <span className="col-md-12 form-elements">
-                <h6>Head Teacher [optional]</h6>
-                <select
-                  className="form-select"
-                  // type="text"
-                  name="head"
-                  // placeholder="Enter school title"
-                  // id="school"
-                  // value={formData?.head}
-                  onChange={handleChange}
-                >
-                  <option defaultValue="">--Select a Trainer--</option>
-                  {allTrainers?.data?.msg?.length > 0 ? 
-                    allTrainers?.data?.msg?.map((trainer, index) => (
-                      <option
-                        key={index}
-                        value={JSON.stringify({id:trainer?.trainer_id, name:`${trainer?.first_name} ${trainer?.last_name}`})}
-                      >{`${trainer?.first_name} ${trainer?.last_name}`}</option>
-                    ))
-                   : loadingTrainers ? (
-                    <option>loading trainers...</option>
-                  ) : errorLoadingtrainers ? (
-                    <option>Error while loading trainers!</option>
-                  ) : (
-                    <option>No trainer record found</option>
-                  )}
-                </select>
-              </span>
+            <span className="col-md-12 d-md-flex justify-content-start align-items-center mb-2 form-elements">
+              <h6>Head Teacher [optional]</h6>
+              <select
+                className="form-select ms-2"
+                style={{ width: "50%" }}
+                // type="text"
+                name="head"
+                // placeholder="Enter school title"
+                // id="school"
+                // value={formData?.head}
+                onChange={handleChange}
+              >
+                <option defaultValue="">--Select a Trainer--</option>
+                {allTrainers?.data?.msg?.length > 0 ? (
+                  allTrainers?.data?.msg?.map((trainer, index) => (
+                    <option
+                      key={index}
+                      value={JSON.stringify({
+                        id: trainer?.trainer_id,
+                        name: `${trainer?.first_name} ${trainer?.last_name}`,
+                      })}
+                    >{`${trainer?.first_name} ${trainer?.last_name}`}</option>
+                  ))
+                ) : loadingTrainers ? (
+                  <option>loading trainers...</option>
+                ) : errorLoadingtrainers ? (
+                  <option>Error while loading trainers!</option>
+                ) : (
+                  <option>No trainer record found</option>
+                )}
+              </select>
+            </span>
 
-              <span className="row mt-3">
-                <h6>Class Subjects [optional]</h6>
-                {allSubjects?.data?.msg?.length > 0 ? (
-                  allSubjects?.data?.msg?.map((subject, index) => (
+            <span className="col-md-12 mb-2">
+              <h6>Class Subjects [optional]</h6>
+              <div className="row row-cols-2 ">
+                {allSubjects?.data?.length > 0 ? (
+                  allSubjects?.data?.map((subject, index) => (
                     <div
                       key={index}
-                      className="ms-2 d-flex "
+                      className="col ms-2 d-flex "
                       style={{ width: "40%" }}
                     >
                       <input
@@ -245,25 +282,54 @@ const CreateClass = (props) => {
                 ) : (
                   <h6></h6>
                 )}
-              </span>
+              </div>
+            </span>
 
-              <div className="mt-3 px-2" style={{ width: "80%" }}>
-                <h5>Add Arms to class [optional]</h5>
-                {/* added arms */}
+            <div className="col-md-12 px-1">
+              <div className="form-elements w-100 d-flex justify-content-start align-items-center">
+                <h6 className="text-nowrap">Add Arms[optional]</h6>
+                <input
+                  className="form-check-input ms-2"
+                  type="text"
+                  name="arms"
+                  placeholder="Gold, Diamond, Ruby or A, B, C"
+                  ref={armForm}
+                  pattern="^[A-Za-z0-9]{1,30}$"
+                  // id="arms"
+                  style={{ width: "50%" }}
+                  // value=""
+                  // onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={addArm}
+                  className="btn btn-primary btn-sm py-0 d-flex justify-content-center align-items-center ms-2"
+                  style={{ width: "30px", height: "30px" }}
+                >
+                  <Plus size={"16px"} className="" />
+                </button>
+              </div>
+
+              {/* added arms */}
+              <span className="row row-cols-4 px-2">
                 {formData?.arms?.length > 0
                   ? formData?.arms?.map((arm, index) => (
-                      <span className="display-flex mt-1 px-2" style={{width:"50%"}} key={index}>
+                      <span
+                        className="col display-flex align-items-center border rounded border-primary mt-1 ps-2 ms-1"
+                        // style={{ width: "70%" }}
+                        key={index}
+                      >
                         <p className="p-0 m-0">{arm}</p>
                         <button
-                          className="btn btn-outline-danger btn-sm ms-3"
+                          className="btn btn-sm text-danger"
                           onClick={(e) => {
                             e?.preventDefault();
-                              setData({
-                                ...formData,
-                                arms: formData.arms.filter(
-                                  (data) => data !== arm
-                                ),
-                              });
+                            setData({
+                              ...formData,
+                              arms: formData.arms.filter(
+                                (data) => data !== arm
+                              ),
+                            });
                           }}
                         >
                           <X size={"16px"} className="" />
@@ -271,39 +337,18 @@ const CreateClass = (props) => {
                       </span>
                     ))
                   : null}
-                <div className="col-md-12 form-elements d-flex justify-content-between">
-                  <input
-                    className="form-check-input"
-                    type="text"
-                    name="arms"
-                    placeholder="Gold, Diamond, Ruby or A, B, C"
-                    ref={armForm}
-                    pattern= "^[A-Za-z0-9]{1,30}$"
-                    // id="arms"
-                    style={{ width: "70%" }}
-                    // value=""
-                    // onChange={handleChange}
-                  />
-                  <button
-                    type="button"
-                    onClick={addArm}
-                    className="btn btn-primary btn-sm py-0 d-flex justify-content-center align-items-center "
-                  >
-                    ADD
-                    <Plus size={"16px"} className="" />
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </ModalBody>
-        <ModalFooter className="mt-3">
-          <button className="shadow" onClick={props.onHide}>
+              </span>
+            </div>
+          </form>
+        </div>
+
+        <span className="d-flex justify-content-end align-items-center mt-2">
+          <button className="shadow" onClick={ () => hideModal({ ...modal, show: false })}>
             Cancel
           </button>
 
           <button
-            className="default-btn"
+            className="default-btn ms-2"
             style={{ border: "2px solid #00AFEF", minWidth: "30px" }}
             onClick={handleFormSubmit}
             disabled={isLoading}
@@ -311,9 +356,9 @@ const CreateClass = (props) => {
           >
             Create
           </button>
-        </ModalFooter>
-      </ModalDialog>
-    </Modal>
+        </span>
+      </div>
+    </div>
   );
 };
 

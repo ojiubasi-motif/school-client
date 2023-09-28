@@ -16,7 +16,7 @@ const AllClasses = () => {
     isError: errorLoadingSch,
   } = useSchoolInview(location?.state?.school?.school_id);
   const [modal, setModal] = useState({ show: false, data: null });
-  
+
   useEffect(() => {
     const setData = () => {
       if (!loadingSchool && !errorLoadingSch && !school?.data) {
@@ -25,8 +25,6 @@ const AllClasses = () => {
     };
     return setData();
   }, [school?.data]);
-
-  
 
   const {
     isLoading: loadingClasses,
@@ -93,12 +91,7 @@ const AllClasses = () => {
         )}
       </div>
       {/* =====end-of-table====== */}
-
-      <CreateClass
-        show={modal?.show}
-        onHide={() => setModal(false)}
-        data={modal?.data}
-      />
+      {modal?.show ? <CreateClass modal={modal} hideModal={setModal} /> : null}
     </div>
   );
 };

@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 const localBaseUrl = "https://school-manager-i86s.onrender.com/api/v1/";
 // const localBaseUrl = "http://localhost:8080/api/v1/";
 const token =
-  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY2hvb2xfaWQiOiIyNDgyIiwiZmlyc3RfbmFtZSI6IkxpIiwibGFzdF9uYW1lIjoiQ2hpIiwiZW1haWwiOiJsaUBnbWFpbC5jb20iLCJ0cmFpbmVyX2lkIjoiNTEzNTciLCJpYXQiOjE2OTQ5NzY4ODIsImV4cCI6MTY5NTA2MzI4Mn0._DC_ez1vNW-yYb30Pgy7AzfN9MB24Kq6e0Y4gYJO09w";
+  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY2hvb2xfaWQiOiIyNDgyIiwiZmlyc3RfbmFtZSI6IkxpIiwibGFzdF9uYW1lIjoiQ2hpIiwiZW1haWwiOiJsaUBnbWFpbC5jb20iLCJ0cmFpbmVyX2lkIjoiNTEzNTciLCJpYXQiOjE2OTU4OTgxNDYsImV4cCI6MTY5NTk4NDU0Nn0.n11OMRHrwloXAFL4Kk5ts5Y-6BNQSHJb4akB-WxI0Iw";
 
 const createSchool = (school) => {
   return axios.post(`${localBaseUrl}schools`, school);
@@ -39,7 +39,6 @@ const createStudent = (studentData) => {
 };
 
 const createScore = (scorePayload) => {
-  // console.log("payload submitted==>", studentData);
   return axios.post(`${localBaseUrl}/scores`, scorePayload, {
     headers: {
       "X-Requested-With": "XMLHttpRequest",
@@ -99,7 +98,6 @@ const fetchStudentAcademicRecords = async ({ queryKey }) => {
     },
     params: query,
   });
-  // console.log("filter query=>", query);
   return {
     data:
       filteredRes?.data?.data?.code === 600
@@ -144,6 +142,9 @@ export const useUserLogin = () => {
 
 export const useSingleStudentData = (student_id) => {
   return useQuery(["studentInView", student_id], fetchSingleStudent, {
+    onSuccess: (data) => {
+      console.log("student in view", data);
+    },
     enabled: !!student_id, //enable query only if studentId is avalable
     staleTime: 120000,
   });
@@ -295,20 +296,24 @@ export const useCreateStudentData = () => {
   });
 };
 
-export const useCreateScoreData = () => {
+export const useCreateScoreData = (filteredSubject) => {
   const queryClient = useQueryClient();
   return useMutation(createScore, {
     onSuccess: (data) => {
-      // console.log("success creating student!!!", data);
-      queryClient.invalidateQueries([
-        "studentScores",
-        {
-          subject: data?.data?.msg?.subject_id,
-          session: data?.data?.msg?.session_id,
-          student_id: data?.data?.msg?.student_id,
-          term: data?.data?.msg?.term,
-        },
-      ]);
+      const filter = !filteredSubject
+        ? {
+            session: data?.data?.msg?.session_id,
+            term: data?.data?.msg?.term,
+            student_id: data?.data?.msg?.student_id,
+          }
+        : {
+            session: data?.data?.msg?.session_id,
+            subject: filteredSubject,
+            term: data?.data?.msg?.term,
+            student_id: data?.data?.msg?.student_id,
+          };
+
+      queryClient.invalidateQueries(["studentScores", filter]);
     },
     onError: (err) => {
       console.log("error while creating student", err);
