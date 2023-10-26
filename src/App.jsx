@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
-import PageLayout from "./components/layout/Index";
+import Index from "./components/layout/Index";
 import Home from "./components/Home";
 import Students from "./components/Students";
 import Schools from "./components/Schools";
@@ -30,7 +30,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route
           path="/"
-          element={user ? <PageLayout /> : <Navigate to="/login" />}
+          element={user ? <Index /> : <Navigate to="/login" />}
         >
           <Route index element={<Schools />} />
           {/* <Route path="/classes" element={<AllClasses />} /> */}
