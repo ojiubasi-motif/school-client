@@ -9,7 +9,7 @@ import CreateStudent from "../modals/CreateStudent";
 import CreateSubject from "../modals/CreateSubject";
 import toast, { Toaster } from "react-hot-toast";
 
-const Index = () => {
+const Home = () => {
   const {
     toggleModal,
     setModal,
@@ -43,4 +43,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Home;
