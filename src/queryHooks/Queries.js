@@ -5,8 +5,8 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "react-query";
 import jwt from "jwt-decode";
 import Cookies from "js-cookie";
 
-// const localBaseUrl = "https://school-manager-i86s.onrender.com/api/v1/";
-const localBaseUrl = "http://localhost:8080/api/v1/";
+const localBaseUrl = "https://school-manager-i86s.onrender.com/api/v1/";
+// const localBaseUrl = "http://localhost:8080/api/v1/";
 const token =
   "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY2hvb2xfaWQiOiIyNDgyIiwiZmlyc3RfbmFtZSI6IkxpIiwibGFzdF9uYW1lIjoiQ2hpIiwiZW1haWwiOiJsaUBnbWFpbC5jb20iLCJ0cmFpbmVyX2lkIjoiNTEzNTciLCJpYXQiOjE2OTY3MTU3NjYsImV4cCI6MTY5OTMwNzc2Nn0.NhBC-zehZfZTgeQ9H5Yl2yvLWuCNhRlCSVOIAzuhk6E";
 
