@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 const localBaseUrl = "https://school-manager-i86s.onrender.com/api/v1/";
 // const localBaseUrl = "http://localhost:8080/api/v1/";
 const token =
-  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY2hvb2xfaWQiOiIyNDgyIiwiZmlyc3RfbmFtZSI6IkxpIiwibGFzdF9uYW1lIjoiQ2hpIiwiZW1haWwiOiJsaUBnbWFpbC5jb20iLCJ0cmFpbmVyX2lkIjoiNTEzNTciLCJpYXQiOjE2OTU4OTgxNDYsImV4cCI6MTY5NTk4NDU0Nn0.n11OMRHrwloXAFL4Kk5ts5Y-6BNQSHJb4akB-WxI0Iw";
+  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY2hvb2xfaWQiOiIyNDgyIiwiZmlyc3RfbmFtZSI6IkxpIiwibGFzdF9uYW1lIjoiQ2hpIiwiZW1haWwiOiJsaUBnbWFpbC5jb20iLCJ0cmFpbmVyX2lkIjoiNTEzNTciLCJpYXQiOjE2OTY3MTU3NjYsImV4cCI6MTY5OTMwNzc2Nn0.NhBC-zehZfZTgeQ9H5Yl2yvLWuCNhRlCSVOIAzuhk6E";
 
 const createSchool = (school) => {
   return axios.post(`${localBaseUrl}schools`, school);
@@ -31,6 +31,16 @@ const createClass = (classData) => {
 const createStudent = (studentData) => {
   // console.log("payload submitted==>", studentData);
   return axios.post(`${localBaseUrl}students`, studentData, {
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      token,
+    },
+  });
+};
+
+const createSubject = (subjectData) => {
+  // console.log("payload submitted==>", studentData);
+  return axios.post(`${localBaseUrl}subjects`, subjectData, {
     headers: {
       "X-Requested-With": "XMLHttpRequest",
       token,
@@ -62,7 +72,7 @@ const fetchAllStudents = ({ queryKey }) => {
 
 const fetchAllClasses = async ({ queryKey }) => {
   const filter = queryKey[1];
-  console.log("schoolid supplied for classes=>", filter);
+  // console.log("schoolid supplied for classes=>", filter);
   const classes = await axios.get(`${localBaseUrl}grades/${filter}`);
   return {
     data: classes?.data?.code == 600 ? classes?.data?.msg : classes?.data,
@@ -155,7 +165,7 @@ export const useStudentAcademicData = (studentRecordQuery) => {
     ["studentScores", studentRecordQuery],
     fetchStudentAcademicRecords,
     {
-      enabled: !!studentRecordQuery,
+      enabled: !!studentRecordQuery?.term,
       staleTime: 120000,
     }
   );
@@ -191,17 +201,20 @@ export const useAllTrainersData = () => {
   );
 };
 
-export const useAllSubjectsData = () => {
+
+export const useAllSubjectsData = (schoolId) => {
   return useQuery(
-    "subjects",
+    ["subjects", schoolId],
     async () => {
-      const subj = await axios.get(`${localBaseUrl}subjects`);
+      // console.log("fetching subjects for this sch=>", schoolId)
+      const subj = await axios.get(`${localBaseUrl}subjects/all/${schoolId}`);
+      // console.log("fetched=>", subj)
       return {
         data: subj?.data?.code === 600 ? subj?.data?.msg : subj?.data,
       };
     },
     {
-      // enabled:!!studentId,
+      enabled:!!schoolId,
       staleTime: 300000, //refetch after 5 minutes
     }
   );
@@ -244,9 +257,6 @@ export const useOneSubjectData = (subjectId) => {
 export const useAllClassesData = (schoolId) => {
   const queryClient = useQueryClient();
   return useQuery(["classes", schoolId], fetchAllClasses, {
-    // onSuccess: (data) => {
-    //   console.log("all classes returned==>", data);
-    // },
     initialDataUpdatedAt: () => {
       queryClient.getQueryState(["classes", schoolId])?.dataUpdatedAt;
     },
@@ -289,6 +299,19 @@ export const useCreateStudentData = () => {
           grade_id: data?.data?.msg?.grade,
         },
       ]);
+    },
+    onError: (err) => {
+      console.log("error while creating student", err);
+    },
+  });
+};
+
+export const useCreateSubjectData = () => {
+  const queryClient = useQueryClient();
+  return useMutation(createSubject, {
+    onSuccess: (data) => {
+      // console.log("success creating student!!!", data);
+      queryClient.invalidateQueries(["subjects",data?.data?.msg?.school]);
     },
     onError: (err) => {
       console.log("error while creating student", err);

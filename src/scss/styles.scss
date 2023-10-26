@@ -14,11 +14,15 @@ ul,p,div {
 .nav-list>li{
 
 }
-.topnav-link{
+.topnav-link,.side-nav{
   text-decoration: none;
   color: #00afef;
   font-size: 16px;
   font-weight: bolder;
+}
+.side-nav-list{}
+.side-nav-list>p:hover{
+  color: #00afef;
 }
 .topnav-link:hover{
   color: #00afef;
@@ -35,7 +39,6 @@ a:hover {
 .default-btn{
   background-color: #00afef;
 }
-
 
 .form-elements input,
 .form-elements textarea{
@@ -58,21 +61,6 @@ a:hover {
     opacity: 0.4;
     font-size: 18px;
 }
-// .form-check {
-//   position: relative;
-//   display: block;
-//   padding-left: 1.25rem;
-// }
-
-// .form-check-input {
-//   position: absolute;
-//   margin-top: 0.3rem;
-//   margin-left: -1.25rem;
-// }
-// .form-check-input[disabled] ~ .form-check-label,
-// .form-check-input:disabled ~ .form-check-label {
-//   color: #858796;
-// }
 
 .form-check-label {
   margin-bottom: 0;
@@ -108,6 +96,8 @@ input::placeholder, textarea::placeholder{
     color: lightgrey;
 }
 
-
+.modal-form-label{
+  min-width: 30%
+}
 
 @import "bootstrap/scss/bootstrap";

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, redirect, useLocation } from "react-router-dom";
 // import { classOptions } from "./constants/dummy";
 import {
@@ -12,11 +12,14 @@ import CharacterDetails from "./CharacterDetails";
 // import { useQueryClient } from "react-query";
 import CreateStudent from "./modals/CreateStudent";
 import { Plus } from "react-feather";
+import { GlobalStatesContext } from "./context/globalStates";
 
 const Students = () => {
   // const queryClient = useQueryClient();
+  const {toggleModal, setModal} = useContext(GlobalStatesContext)
+
   const location = useLocation();
-  const [modal, setModal] = useState({ show: false, data: null });
+  // const [modal, setModal] = useState({ show: false, data: null });
   const [filteredFields, setFilter] = useState({
     class: null,
     arm: null,
@@ -165,7 +168,7 @@ const Students = () => {
             className="btn btn-primary btn-sm text-nowrap ms-5"
             onClick={(e) => {
               e?.preventDefault();
-              setModal({ show: true, data: { thisSchool, thisClass } });
+              setModal({ show: true,action:"create-student", data: { thisSchool, thisClass } });
             }}
           >
             Create Student
@@ -234,8 +237,8 @@ const Students = () => {
         </tbody>
       </table>
 
-      {modal?.show ? (
-        <CreateStudent modal={modal} hideModal={setModal} />
+      {toggleModal?.show && toggleModal?.action === "create-student" ? (
+        <CreateStudent/>
       ) : null}
 
       {/* =====end-of-table====== */}

@@ -3,17 +3,30 @@
 /* eslint-disable react/prop-types */
 // import React from 'react'
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useCreateScoreData } from "../../queryHooks/Queries";
+import { toast } from "react-hot-toast";
+import { GlobalStatesContext } from "../context/globalStates";
 
 const AddScoreModal = (props) => {
   const { hideModal, modal } = props;
+  const { setFilter, filteredFields } = modal.data;
+  const {
+    toast: reactToast,
+    setToast
+  } = useContext(GlobalStatesContext);
 
   const [formFields, setFields] = useState({
     score: null,
     assessment_type: null,
     subject: null,
   });
+
+  const subjectTarget = modal?.data?.subject
+    ? modal?.data?.subject
+    : formFields?.subject
+    ? formFields?.subject
+    : {};
 
   const { mutate, isError, isLoading } = useCreateScoreData(
     modal?.data?.filteredSubject
@@ -28,20 +41,29 @@ const AddScoreModal = (props) => {
       score,
       session: modal?.data?.session?.title,
       session_id: modal?.data?.session?.id,
-      subject: subject ? subject : modal?.data?.subject?.subject_id,
+      subject: subject ? subject?.subject_id : modal?.data?.subject?.subject_id,
       term: modal?.data?.term,
       assessment_type,
     };
     mutate(payload);
-    setFields({ score: null, assessment_type: null ,subject:null});
-    !isLoading && !isError ? hideModal({ ...modal, show: false }) : null;
+    setFields({ score: null, assessment_type: null, subject: null });
+    if(!isLoading && !isError){
+      hideModal({ ...modal, show: false });
+      toast.success('Score added successfully!')
+      // setToast({show:true,msg:'Score added successfully!'});
+      
+    }
+    ()=>setFilter({ ...filteredFields, term: 1 });
   };
 
   const handleChange = (e) => {
-    setFields({
-      ...formFields,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value, id } = e.target;
+    name === "subject"
+      ? setFields({ ...formFields, subject: JSON.parse(value) })
+      : setFields({
+          ...formFields,
+          [name]: value,
+        });
   };
 
   return (
@@ -74,7 +96,7 @@ const AddScoreModal = (props) => {
         >
           X
         </span>
-        
+
         <h6 className="d-flex justify-content-center">
           Add score for{" "}
           <p className="m-0 p-0 text-primary text-capitalize fw-bold ms-2">
@@ -100,14 +122,15 @@ const AddScoreModal = (props) => {
               {modal?.data?.term}
             </p>
           </span>
-          {modal?.data?.subject ? (
-            <span className="col col-md-6 d-flex">
-              subject:
-              <p className="m-0 p-0 text-primary text-capitalize ms-1">
-                {modal?.data?.subject?.name}
-              </p>
-            </span>
-          ) : null}
+
+          <span className="col col-md-6 d-flex">
+            subject:
+            <p className="m-0 p-0 text-primary text-capitalize ms-1">
+              {modal?.data?.subject
+                ? modal?.data?.subject?.title
+                : formFields?.subject?.title}
+            </p>
+          </span>
 
           <hr className="mt-2" />
 
@@ -115,14 +138,15 @@ const AddScoreModal = (props) => {
             <span className="d-md-inline-flex justify-content-start align-items-center me-2 mt-2 form-elements">
               <h6 className="text-nowrap">Subject</h6>
               <select
-                className="ms-2"
+                className="form-select ms-2"
                 name="subject"
                 onChange={handleChange}
+                style={{ width: "50%" }}
               >
                 <option selected={null}>--Select One--</option>
                 {modal?.data?.allSubjects?.map((subject, index) => (
-                  <option key={index} value={subject?.subject_id}>
-                    {subject?.name}
+                  <option key={index} value={JSON.stringify(subject)}>
+                    {subject?.title}
                   </option>
                 ))}
               </select>
@@ -132,19 +156,24 @@ const AddScoreModal = (props) => {
           <span className="d-md-inline-flex justify-content-start align-items-center me-2 mt-2 form-elements">
             <h6 className="text-nowrap">Assesment Type</h6>
             <select
-              className="ms-2"
-              // type="text"
+              style={{ width: "50%" }}
+              className="form-select ms-2"
               name="assessment_type"
               onChange={handleChange}
             >
               <option selected={null}>--Select One--</option>
-              {["CAT-1", "CAT-2", "CAT-3", "Examination"].map(
-                (assessment, index) => (
-                  <option key={index} value={assessment}>
-                    {assessment}
-                  </option>
-                )
-              )}
+              {subjectTarget.cat?.map((assessment, index) => (
+                    <option
+                      disabled={modal?.data?.scores?.find(
+                        (asstype) => asstype?.assessment_type === assessment
+                      )}
+                      key={index}
+                      value={assessment}
+                    >
+                      {assessment}
+                    </option>
+                  ))
+                }
             </select>
           </span>
 

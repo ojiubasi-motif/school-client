@@ -23,7 +23,11 @@ const CreateSchool = (props) => {
     };
     mutate(payload);
     setFields({title:""});
-    !isLoading && !isError ? hideModal({show:false}):null;
+    if(!isLoading && !isError ){
+      hideModal({ ...modal, show: false });
+      toast.success(`${formFields?.title} created successfully`)
+      // setToast({show:true,msg:'Class created successfully'})
+    }
   };
 
   const handleChange = (e) => {

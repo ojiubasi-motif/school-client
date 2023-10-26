@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   useAllSessionsData,
   useAllSubjectsData,
@@ -11,7 +11,7 @@ import {
 } from "../queryHooks/Queries";
 import { session, subjects } from "./constants/dummy";
 import AcademicRecord from "./AcademicRecord";
-import { Plus } from "react-feather";
+import { Plus, Printer } from "react-feather";
 import AddScoreModal from "./modals/AddScoreModal";
 import { PropagateLoader } from "react-spinners";
 
@@ -100,7 +100,7 @@ const StudentDetails = () => {
     data: allSubjects,
     isLoading: loadingSubjects,
     isError: errorLoadingSubjects,
-  } = useAllSubjectsData();
+  } = useAllSubjectsData(data?.data?.msg?.school_id);
 
   const {
     data: studentClass,
@@ -111,6 +111,7 @@ const StudentDetails = () => {
     schoolId: data?.data?.msg?.school_id,
   });
 
+  console.log("stu page allsub=>",allSubjects?.data)
   return (
     <div className="mt-1 p-3 pb-0">
       {isError ? (
@@ -135,27 +136,29 @@ const StudentDetails = () => {
               {`${data?.data?.msg?.last_name}, ${data?.data?.msg?.first_name} ${data?.data?.msg?.other_name}`}
             </h2>
             <span className="display-flex w-100">
-              <span className="d-flex fs-4 fw-bold">
+              <span className="d-flex align-items-center fs-4">
                 ID:
-                <p className="text-secondary ms-1 ">
+                <p className="text-secondary fs-5 ms-1 fw-bold">
                   {data?.data?.msg?.student_id}
                 </p>
               </span>
-              <span className="d-flex fs-4 fw-bold">
+              <span className="d-flex fs-4 align-items-center">
                 School:
-                <p className="text-secondary ms-1 d-inline-block text-truncate">
+                <p className="text-secondary ms-1 fs-5  d-inline-block fw-bold text-truncate">
                   {school?.data?.name}
                 </p>
               </span>
-              <span className="d-flex fs-4 fw-bold">
+              <span className="d-flex fs-4 align-items-center">
                 Class:
-                <p className="text-secondary ms-1 d-inline-block text-truncate">
+                <p className="text-secondary ms-1 fs-5 d-inline-block fw-bold text-truncate">
                   {studentClass?.data?.name}
                 </p>
               </span>
-              <span className="d-flex fs-4 fw-bold">
+              <span className="d-flex fs-5 align-items-center">
                 Arm:
-                <p className="text-secondary ms-1">{data?.data?.msg?.arm}</p>
+                <p className="text-secondary fw-bold ms-1">
+                  {data?.data?.msg?.arm}
+                </p>
               </span>
             </span>
           </div>
@@ -252,17 +255,19 @@ const StudentDetails = () => {
                     <option selected="all" value="all">
                       All Subjects
                     </option>
-                    {allSubjects?.data?.map((option, index) => (
-                      <option key={index} value={option?.subject_id}>
-                        {option?.name}
-                      </option>
-                    ))}
+                    {allSubjects?.data?.length > 0
+                      ? allSubjects?.data?.map((option, index) => (
+                          <option key={index} value={option?.subject_id}>
+                            {option?.title}
+                          </option>
+                        ))
+                      : null}
                   </select>
                   <label htmlFor="class">Subject</label>
                 </div>
               </div>
               {/*+++++create score for a new subject btn+++++++++ */}
-              <span>
+              <span className="d-flex justify-content-between">
                 <button
                   className="btn btn-primary btn-sm btn-outline-light text-nowrap"
                   onClick={(e) => {
@@ -290,6 +295,8 @@ const StudentDetails = () => {
                           filteredFields?.subject !== "all"
                             ? filteredFields?.subject
                             : null,
+                        setFilter,
+                        filteredFields,
                       },
                     });
                   }}
@@ -297,8 +304,24 @@ const StudentDetails = () => {
                   Create Score
                   <Plus size={"16px"} className="" />
                 </button>
+                {academicData?.data?.length > 0 ? (
+                  <NavLink
+                    to="/results"
+                    state={{
+                      student: data?.data?.msg,
+                      school: school?.data,
+                      grade: studentClass?.data?.name,
+                      session: currentSession,
+                      term: currentTerm,
+                      allSubjects: allSubjects?.data,
+                    }}
+                    className="btn btn-small btn-success ms-4 text-nowrap"
+                  >
+                    Print Result
+                    <Printer size={14} className="ms-1" />
+                  </NavLink>
+                ) : null}
               </span>
-
               {/* =====filter group ends===== */}
             </div>
           </span>
@@ -343,7 +366,7 @@ const StudentDetails = () => {
                             {
                               allSubjects?.data?.find(
                                 (subj) => subj?.subject_id === termdata?.subject
-                              )?.name
+                              )?.title
                             }
                           </h4>
 
@@ -386,6 +409,14 @@ const StudentDetails = () => {
                                       title: currentSession?.title,
                                     },
                                     term: currentTerm,
+                                    scores:
+                                      currentTerm == 1
+                                        ? termdata?.record?.first_term
+                                        : currentTerm == 2
+                                        ? termdata?.record?.second_term
+                                        : currentTerm == 3
+                                        ? termdata?.record?.third_term
+                                        : null,
                                     subject: allSubjects?.data?.find(
                                       (subj) =>
                                         subj?.subject_id === termdata?.subject
@@ -411,21 +442,12 @@ const StudentDetails = () => {
                       <th scope="col">
                         <p className="gen-paragraph">Session</p>
                       </th>
-                      {/* <th scope="col">
-                      <p className="gen-paragraph">Term</p>
-                    </th> */}
-                      {/* <th scope="col">
-                        <p className="gen-paragraph">Subject</p>
-                      </th> */}
                       <th scope="col">
                         <p className="gen-paragraph">Assesment Type</p>
                       </th>
                       <th scope="col">
                         <p className="gen-paragraph">Score</p>
                       </th>
-                      {/* <th scope="col">
-                      <p className="gen-paragraph">Total</p>
-                    </th> */}
                     </tr>
                   </thead>
                   <AcademicRecord

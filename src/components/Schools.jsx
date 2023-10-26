@@ -4,6 +4,8 @@ import { MoreVertical, Plus } from "react-feather";
 import { Link } from "react-router-dom";
 import { useAllSchoolsData } from "../queryHooks/Queries";
 import CreateSchool from "./modals/CreateSchool";
+import { PropagateLoader } from "react-spinners";
+
 
 const Schools = () => {
   const [modal, setModal] = useState({ show: false });
@@ -12,7 +14,6 @@ const Schools = () => {
     isLoading: isLoadingAllSchools,
     isError: errorloadingSchools,
   } = useAllSchoolsData();
-  // console.log("see the schools returned", allSchools?allSchools:"still loading...");
 
   return (
     <>
@@ -48,13 +49,19 @@ const Schools = () => {
               <th scope="col">
                 <p className="gen-paragraph">Name</p>
               </th>
-              {/* <th scope="col"><p className='gen-paragraph'>Number of Students</p></th>
-              <th scope="col"><p className='gen-paragraph'>Action</p></th> */}
             </tr>
           </thead>
           <tbody>
             {isLoadingAllSchools ? (
-              <div>Please wait...</div>
+              <td className="d-flex">
+                  <PropagateLoader
+              color="#0D6EFD"
+              size={10}
+              loading={true}
+              className="m-auto"
+            />
+              </td>
+              
             ) : errorloadingSchools ? (
               <div>Error loading schools</div>
             ) : allSchools?.data?.msg?.length > 0 ? (
@@ -80,11 +87,7 @@ const Schools = () => {
                   </td>
                   <td>
                     <div className="d-flex justify-content-start align-items-center">
-                      {/* <PlayCircle
-                      size={"24px"}
-                      className="gen-text"
-                      style={{ cursor: "pointer" }}
-                    /> */}
+                      
                       <div className="ms-2">
                         <Link
                           className="gen-link"
@@ -107,13 +110,13 @@ const Schools = () => {
             ) : (
               <tr>No record is found</tr>
             )}
-            <tr>
+            {/* <tr>
               <td colSpan={3} className="text-center">
                 <Link to="/more" className="p-0 m-0 gen-link text-center">
                   View More
                 </Link>
               </td>
-            </tr>
+            </tr> */}
           </tbody>
         </table>
       </div>

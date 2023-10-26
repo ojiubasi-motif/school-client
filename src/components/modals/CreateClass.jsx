@@ -3,7 +3,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-undef */
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import {
   Modal,
   ModalBody,
@@ -27,6 +27,8 @@ import {
 } from "../../queryHooks/Queries";
 import { useQueryClient } from "react-query";
 import { Plus, X } from "react-feather";
+import { toast } from "react-hot-toast";
+import { GlobalStatesContext } from "../context/globalStates";
 
 const CreateClass = (props) => {
   const armForm = useRef();
@@ -39,6 +41,11 @@ const CreateClass = (props) => {
   });
 
   const {
+    toast: reactToast,
+    setToast
+  } = useContext(GlobalStatesContext);
+
+  const {
     data: allTrainers,
     isLoading: loadingTrainers,
     isError: errorLoadingtrainers,
@@ -47,9 +54,8 @@ const CreateClass = (props) => {
     data: allSubjects,
     isLoading: loadingSubjects,
     isError: errorLoadingSubjects,
-  } = useAllSubjectsData();
+  } = useAllSubjectsData(modal?.data?.data?.school_id);
 
-  // const schoolInview = queryClient?.getQueryData('school-inview')
   const {
     data: allSchools,
     isLoading: loadingSchools,
@@ -77,7 +83,12 @@ const CreateClass = (props) => {
       subjects: [],
       arms: [],
     });
-    !isLoading && !isError ? hideModal({ ...modal, show: false }) : null;
+    if(!isLoading && !isError ){
+      hideModal({ ...modal, show: false });
+      toast.success(`${title} created successfully`)
+      // setToast({show:true,msg:'Class created successfully'})
+    }
+     
   };
 
   const addArm = (e) => {
@@ -260,18 +271,18 @@ const CreateClass = (props) => {
                         className="form-check-input"
                         name="subjects"
                         type="checkbox"
-                        id={subject?.name}
+                        id={subject?.title}
                         onChange={handleChange}
                         // disabled={index > 4}
                         checked={formData?.subjects?.some(
-                          (selected) => selected === subject?.name
+                          (selected) => selected === subject?.title
                         )}
                       />
                       <label
                         className="form-check-label"
-                        htmlFor={subject?.name}
+                        htmlFor={subject?.title}
                       >
-                        {subject?.name}
+                        {subject?.title}
                       </label>
                     </div>
                   ))

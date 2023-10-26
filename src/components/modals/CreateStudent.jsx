@@ -3,7 +3,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-undef */
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import {
   Modal,
   ModalBody,
@@ -24,10 +24,16 @@ import {
 } from "../../queryHooks/Queries";
 // import {useQueryClient} from 'react-query'
 import { Plus, X } from "react-feather";
+import { GlobalStatesContext } from "../context/globalStates";
+import { PropagateLoader } from "react-spinners";
+import { toast } from "react-hot-toast";
+
 
 const CreateStudent = (props) => {
   //   const queryClient = useQueryClient();
-  const { hideModal, modal } = props;
+  const {toggleModal, setModal} = useContext(GlobalStatesContext)
+
+  // const { hideModal, modal } = props;
   const [formData, setData] = useState({
     school: null,
     first_name: "",
@@ -50,11 +56,8 @@ const CreateStudent = (props) => {
   } = useAllClassesData(
     formData?.school
       ? formData?.school?.school_id
-      : modal?.data?.thisSchool?.data?.school_id
+      : toggleModal?.data?.thisSchool?.data?.school_id
   );
-
-  //   const schoolInview = queryClient?.getQueryData('school-inview')
-  // console.log("student school selected=>", form?.school?form?.school:data?.data);
 
   const { mutate, isError, isLoading } = useCreateStudentData();
 
@@ -63,16 +66,16 @@ const CreateStudent = (props) => {
     const { school, first_name, last_name, other_name, grade, arm } = formData;
     // console.log("the head teacher selected=++>",head)
     const payload = {
-      school_id: school ? school?.school_id : modal?.data?.thisSchool?.data?.school_id,
+      school_id: school ? school?.school_id : toggleModal?.data?.thisSchool?.data?.school_id,
       first_name,
       last_name,
       other_name,
       arm: arm
         ? arm
-        : modal?.data?.thisClass?.data?.arms?.length > 0
-        ? modal?.data?.thisClass?.data?.arms[0]
+        : toggleModal?.data?.thisClass?.data?.arms?.length > 0
+        ? toggleModal?.data?.thisClass?.data?.arms[0]
         : null,
-      grade: grade ? grade?.grade_id : modal?.data?.thisClass?.data?.grade_id,
+      grade: grade ? grade?.grade_id : toggleModal?.data?.thisClass?.data?.grade_id,
     };
     mutate(payload);
     setData({
@@ -83,7 +86,12 @@ const CreateStudent = (props) => {
       grade: null,
       arm: null,
     });
-    !isLoading && !isError? hideModal({...modal,show:false}):null;
+
+    if(!isLoading && !isError){
+      setModal({show: false,data:null,action:null });
+      toast.success('Student created successfully')
+    }
+
   };
 
   const handleChange = (e) => {
@@ -137,7 +145,7 @@ const CreateStudent = (props) => {
         style={{ width: "500px" }}
       >
         <span
-          onClick={() => hideModal({ ...modal, show: false })}
+          onClick={() => setModal({show: false,action:null, data:null })}
           className="fw-bold text-light border border-light bg-dark d-flex align-items-center justify-content-center cursor-pointer position-absolute "
           style={{
             top: "-10px",
@@ -157,45 +165,10 @@ const CreateStudent = (props) => {
         <hr className="mt-2"/>
         <div className="p-2">
           <form className="row p-1" onSubmit={handleFormSubmit}>
-            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2">
-              <h6>Student School</h6>
-              <select
-                className="form-select ms-2"
-                style={{width:"50%"}}
-                // type="text"
-                name="school"
-                // placeholder="Enter school title"
-                // id="school"
-                // value={formData?.head}
-                onChange={handleChange}
-              >
-                <option
-                  // defaultValue={JSON.stringify(data?.data)}
-                  selected={modal?.data?.thisSchool?.data}
-                  value={JSON.stringify(modal?.data?.thisSchool?.data)}
-                >
-                  {modal?.data?.thisSchool?.data?.name}
-                </option>
-                {allSchools?.data?.msg?.length > 0 ? (
-                  allSchools?.data?.msg?.map((school, index) =>
-                    school?.school_id !== modal?.data?.thisSchool?.data?.school_id ? (
-                      <option key={index} value={JSON.stringify(school)}>
-                        {school?.name}
-                      </option>
-                    ) : null
-                  )
-                ) : loadingSchools ? (
-                  <option>loading trainers...</option>
-                ) : errorLoadingSchools ? (
-                  <option>Error while loading trainers!</option>
-                ) : (
-                  <option>No trainer record found</option>
-                )}
-              </select>
-            </span>
+            
             {/* ===========names========== */}
-            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2">
-              <h6>First Name</h6>
+            <span className=" col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2" >
+              <h6 className="modal-form-label">First Name</h6>
               <input
                 className="form-check-input ms-2"
                 type="text"
@@ -209,8 +182,8 @@ const CreateStudent = (props) => {
               />
             </span>
 
-            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2">
-              <h6>Last Name</h6>
+            <span className=" col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2" >
+              <h6 className="modal-form-label">Last Name</h6>
               <input
                 className="form-check-input ms-2"
                 type="text"
@@ -224,8 +197,8 @@ const CreateStudent = (props) => {
               />
             </span>
 
-            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2">
-              <h6>Other Name</h6>
+            <span className=" col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2" >
+              <h6 className="modal-form-label">Other Name</h6>
               <input
                 className="form-check-input ms-2"
                 type="text"
@@ -240,15 +213,55 @@ const CreateStudent = (props) => {
             </span>
             {/* ====names end======= */}
 
-            <span className="col-md-12 d-md-flex justify-content-start align-items-center form-elements">
-              <h6>Grade</h6>
+
+            <span className=" col-md-12 d-md-flex justify-content-start align-items-center form-elements mb-2" >
+              <h6 className="modal-form-label">School</h6>
+              <select
+                className="form-select ms-2"
+                style={{width:"50%"}}
+                name="school"
+                onChange={handleChange}
+              >
+                {
+                  toggleModal?.data?.thisSchool?
+                  <option
+                  selected={toggleModal?.data?.thisSchool?.data}
+                  value={JSON.stringify(toggleModal?.data?.thisSchool?.data)}
+                >
+                  {toggleModal?.data?.thisSchool?.data?.name}
+                </option>:
+                <option>
+                --Select School--
+              </option>
+                }
+                
+                {allSchools?.data?.msg?.length > 0 ? (
+                  allSchools?.data?.msg?.map((school, index) =>
+                    school?.school_id !== toggleModal?.data?.thisSchool?.data?.school_id ? (
+                      <option key={index} value={JSON.stringify(school)}>
+                        {school?.name}
+                      </option>
+                    ) : null
+                  )
+                ) : loadingSchools ? (
+                  <option>loading trainers...</option>
+                ) : errorLoadingSchools ? (
+                  <option>Error while loading trainers!</option>
+                ) : (
+                  <option>No trainer record found</option>
+                )}
+              </select>
+            </span>
+
+            <span className=" col-md-12 d-md-flex justify-content-start align-items-center form-elements">
+              <h6 className="modal-form-label">Grade</h6>
               <select
                 className="form-select ms-2"
                 style={{width:"50%"}}
                 name="grade"
                 onChange={handleChange}
               >
-                <option defaultValue="">--Select Student Grade--</option>
+                <option defaultValue="">{toggleModal?.data?.thisSchool || formData?.school?"--Select a Grade--":"--Select School First--"}</option>
                 {allClasses?.data?.length > 0 ? (
                   allClasses?.data?.map((grade, index) => (
                     <option key={index} value={JSON.stringify(grade)}>
@@ -266,7 +279,7 @@ const CreateStudent = (props) => {
             </span>
 
             <span className="col-md-12 d-md-flex justify-content-start align-items-center mt-3">
-              <h6>Arm</h6>
+              <h6 className="modal-form-label">Arm</h6>
               <select
                 className="form-select ms-2"
                 style={{width:"50%"}}
@@ -280,7 +293,7 @@ const CreateStudent = (props) => {
                     </option>
                   ))
                 ) : !formData?.grade ? (
-                  <option>Select a Grade first</option>
+                  <option>--Select a Grade first--</option>
                 ) : (
                   <option>No arm found for this grade selected</option>
                 )}
@@ -290,18 +303,27 @@ const CreateStudent = (props) => {
         </div>
 
         <span className="d-flex justify-content-end align-items-center mt-2">
-          <button className="shadow" onClick={ () => hideModal({ ...modal, show: false })}>
+          <button className="shadow" onClick={ () => setModal({show: false,data:null,action:null })}>
             Cancel
           </button>
 
           <button
             className="default-btn ms-2"
-            style={{ border: "2px solid #00AFEF", minWidth: "30px" }}
+            style={{ border: "2px solid #00AFEF", minWidth: "30px",cursor:`${isLoading}?"wait":""` }}
             onClick={handleFormSubmit}
             disabled={isLoading}
-            // disable={makingRequest?.fetching}
+            
           >
-            Create
+            {
+              isLoading?
+              <PropagateLoader
+              color="#0D6EFD"
+              size={5}
+              loading={true}
+              className="m-auto"
+            />:"Create"
+            }
+            
           </button>
         </span>
       </div>
